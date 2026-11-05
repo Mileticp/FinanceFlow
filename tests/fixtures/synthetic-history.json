@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "source_key": "synthetic-test-v1",
+  "timezone": "Europe/Ljubljana",
+  "profile": {
+    "sex": null,
+    "height_cm": null,
+    "starting_weight_kg": null,
+    "recent_reference_kg": null,
+    "notes": "Synthetic empty profile"
+  },
+  "goals": {
+    "protein_g": null,
+    "weight_min_kg": null,
+    "weight_max_kg": null,
+    "milestone_kg": null,
+    "walking_km": null,
+    "maintenance_low": null,
+    "maintenance_high": null,
+    "calorie_goal": null,
+    "notes": "Synthetic optional goals"
+  },
+  "foods": [
+    {
+      "key": "alpha",
+      "name": "Example food Alpha",
+      "basis_quantity": 100,
+      "basis_unit": "g",
+      "calories": 200,
+      "protein_g": 20,
+      "carbs_g": null,
+      "fat_g": null,
+      "fiber_g": null,
+      "availability": "unknown",
+      "confidence": "user_label",
+      "source": "Synthetic test fixture, not personal data",
+      "notes": "Synthetic fixture"
+    },
+    {
+      "key": "beta",
+      "name": "Example food Beta",
+      "basis_quantity": 100,
+      "basis_unit": "g",
+      "calories": 100,
+      "protein_g": 10,
+      "carbs_g": null,
+      "fat_g": null,
+      "fiber_g": null,
+      "availability": "unknown",
+      "confidence": "user_label",
+      "source": "Synthetic test fixture, not personal data",
+      "notes": "Synthetic fixture"
+    },
+    {
+      "key": "unknown",
+      "name": "Example unknown protein",
+      "basis_quantity": 100,
+      "basis_unit": "g",
+      "calories": 50,
+      "protein_g": null,
+      "carbs_g": null,
+      "fat_g": null,
+      "fiber_g": null,
+      "availability": "unknown",
+      "confidence": "user_label",
+      "source": "Synthetic test fixture, not personal data",
+      "notes": "Synthetic fixture"
+    }
+  ],
+  "recipes": [
+    {
+      "key": "example-recipe",
+      "name": "Example recipe",
+      "ingredients": [
+        [
+          "alpha",
+          50,
+          "g"
+        ],
+        [
+          "beta",
+          50,
+          "g"
+        ]
+      ],
+      "notes": "Synthetic recipe. Unspecified water retained as unknown."
+    }
+  ],
+  "entries": [
+    {
+      "key": "entry-1",
+      "logged_on": "2026-01-01",
+      "logged_time": null,
+      "name": "Example food Alpha",
+      "food_key": "alpha",
+      "quantity": 50,
+      "unit": "g",
+      "calories": 100,
+      "protein_g": 10,
+      "meal": "Other",
+      "confidence": "user_label",
+      "notes": "Synthetic confirmed entry",
+      "source": "Synthetic fixture"
+    },
+    {
+      "key": "entry-2",
+      "logged_on": "2026-01-02",
+      "logged_time": null,
+      "name": "Example food Beta",
+      "food_key": "beta",
+      "quantity": 100,
+      "unit": "g",
+      "calories": 100,
+      "protein_g": 10,
+      "meal": "Other",
+      "confidence": "user_label",
+      "notes": "Synthetic entry",
+      "source": "Synthetic fixture"
+    },
+    {
+      "key": "entry-3",
+      "logged_on": "2026-01-02",
+      "logged_time": null,
+      "name": "Example estimate",
+      "quantity": null,
+      "unit": null,
+      "calories": 200,
+      "protein_g": null,
+      "calories_low": 150,
+      "calories_high": 250,
+      "meal": "Other",
+      "confidence": "assistant_estimate",
+      "notes": "Synthetic uncertainty; not an actual meal",
+      "source": "Synthetic fixture"
+    }
+  ],
+  "notes": [
+    {
+      "key": "example-undated",
+      "logged_on": null,
+      "kind": "undated_mention",
+      "notes": "Synthetic undated reference; never imported as a consumed meal"
+    },
+    {
+      "key": "example-dispute",
+      "logged_on": "2026-01-02",
+      "kind": "discrepancy",
+      "reported_calories": 999,
+      "reported_protein_g": null,
+      "notes": "Synthetic disputed total; entries take priority"
+    }
+  ],
+  "daily": [
+    {
+      "logged_on": "2026-01-01",
+      "status": "partial",
+      "notes": "Synthetic partial day"
+    },
+    {
+      "logged_on": "2026-01-02",
+      "status": "partial",
+      "notes": "Synthetic partial day"
+    }
+  ]
+}
