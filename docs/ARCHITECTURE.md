@@ -8,7 +8,7 @@ The inspected main branch contains index.html, food.html, README, two icons, man
 
 Existing tables are transactions, work_shifts, budgets, settings, financeflow_data, food_logs and weight_logs. Finance data stays in its original paths. Unknown root properties in the finance JSON payload are retained during normalization; queued saves capture their owner before enqueueing.
 
-Existing food_logs are read alongside new nutrition_entries without copying or rewriting them. Existing weight_logs remain the dated measurement source. Duplicate-day weigh-in inserts fail instead of upserting over old records. Legacy protein zero is preserved in storage and shown as unknown/unverified, because the earlier food page used zero for unknown protein. A blank legacy macro edit retains its original stored value; new entries support true null macros.
+Existing food_logs are read alongside new nutrition_entries without copying or rewriting them. Existing weight_logs remain the dated measurement source. Duplicate-day weigh-in inserts fail instead of upserting over old records. Legacy protein zero is preserved in storage and displayed as recorded, with an explicit ambiguity note because the earlier food page also used zero for unknown protein. Missing protein remains null; no zero is automatically reclassified as missing. Legacy values remain unverified. A blank legacy macro edit retains its original stored value; new entries support true null macros.
 
 ## Additive normalized schema
 
@@ -45,7 +45,7 @@ Walking goals do not create activity. Maintenance is unmeasured; the app does no
 
 ## PWA and backup
 
-financeflow-shell-v2.0.0 caches only same-origin app shell assets. No private import file, cloud records, auth or Supabase API requests are cached. Older FinanceFlow shell caches are removed on activation. Installed Android clients receive updated local assets on the next online load/reload. The existing Supabase CDN library and cloud sign-in require connectivity; offline writes are not queued. Failed refreshes retain loaded records.
+financeflow-shell-v2.0.1 caches only same-origin app shell assets. No private import file, cloud records, auth or Supabase API requests are cached. Older FinanceFlow shell caches are removed on activation. Installed Android clients receive updated local assets on the next online load/reload. The existing Supabase CDN library and cloud sign-in require connectivity; offline writes are not queued. Failed refreshes retain loaded records.
 
 Settings exports all existing/new cloud tables as JSON or individual CSV files, including notes/evidence and legacy finance payload. CSV guards formula-like strings. General nutrition backup restore is not automatic: use the reviewed historical importer or a reviewed restoration procedure. Existing explicit finance import stays separate from nutrition and weight.
 

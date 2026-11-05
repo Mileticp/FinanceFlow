@@ -30,10 +30,10 @@
   if(!numeric(servings)||Number(servings)<=0)throw Error('Recipe servings must be positive.');
   const rows=ingredients.map(i=>{const food=foods.find(f=>f.id===i.food_id);if(!food||!numeric(i.quantity)||!i.unit)return {confidence:'unverified'};
    try{return {...scale(food,i.quantity,i.unit),confidence:food.confidence};}catch{return {confidence:'unverified'};}});
-  const t=totals(rows);for(const k of MACROS)t[k]=t[k]===null?null:round(t[k]/Number(servings));return t;
+  const t=totals(rows);for(const k of [...MACROS,'calories_low','calories_high','protein_low','protein_high'])t[k]=t[k]===null?null:round(t[k]/Number(servings));return t;
  }
  function cost(food){
-  if(!numeric(food.price_eur)||!numeric(food.price_quantity)||food.price_unit!==food.basis_unit||Number(food.price_quantity)<=0||['unverified','assistant_estimate'].includes(food.confidence))return null;
+  if(['considered','rejected'].includes(food.availability)||!numeric(food.basis_quantity)||Number(food.basis_quantity)<=0||!numeric(food.price_eur)||!numeric(food.price_quantity)||food.price_unit!==food.basis_unit||Number(food.price_quantity)<=0||['unverified','assistant_estimate'].includes(food.confidence))return null;
   const perBasis=Number(food.price_eur)*Number(food.basis_quantity)/Number(food.price_quantity);
   return {perBasis:round(perBasis),per100Protein:numeric(food.protein_g)&&Number(food.protein_g)>0?round(perBasis*100/Number(food.protein_g)):null};
  }
@@ -47,7 +47,7 @@
  function weightTrend(rows){return [...rows].sort((a,b)=>a.logged_on.localeCompare(b.logged_on)).map(r=>{const from=shiftDay(r.logged_on,-6),window=rows.filter(w=>w.logged_on>=from&&w.logged_on<=r.logged_on);return {...r,trend:round(window.reduce((a,w)=>a+Number(w.weight_kg),0)/window.length),samples:window.length};});}
  function validateEntry(row){
   if(!validDate(row.logged_on)||!row.name?.trim()||row.name.length>200||!['Breakfast','Lunch','Dinner','Snack','Other'].includes(row.meal))throw Error('Check the date, name and meal.');
-  if(row.logged_time&&!/^\d{2}:\d{2}(:\d{2})?$/.test(row.logged_time))throw Error('Invalid time.');
+  if(row.logged_time&&!/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(row.logged_time))throw Error('Invalid time.');
   for(const k of [...MACROS,'calories_low','calories_high','protein_low','protein_high'])if(row[k]!==null&&row[k]!==undefined&&(!numeric(row[k])||Number(row[k])<0||Number(row[k])>100000))throw Error('Nutrition values must be positive or left unknown.');
   if(numeric(row.protein_g)&&Number(row.protein_g)>10000)throw Error('Protein value is too large.');
   for(const [key,lo,hi] of [['calories','calories_low','calories_high'],['protein_g','protein_low','protein_high']]){
@@ -55,8 +55,11 @@
    if(numeric(row[key])&&((numeric(row[lo])&&Number(row[lo])>Number(row[key]))||(numeric(row[hi])&&Number(row[hi])<Number(row[key]))))throw Error('The central estimate must be inside the range.');
   }return row;
  }
+ // Legacy forms stored zero both for real zeros and omitted protein. Preserve
+ // the numeric evidence and expose ambiguity separately; never infer a value.
+ function legacyEntry(row){return {...row,name:row.food_name,protein_g:nullable(row.protein_g),confidence:row.estimated?'legacy_estimate':'legacy_unverified',_table:'food_logs',source:'Existing food_logs record',notes:(row.notes||'')+(numeric(row.protein_g)&&Number(row.protein_g)===0?' · Legacy protein is recorded as 0 g; older forms also used zero for unknown. Verify against the original source.':'')};}
  const canonical=o=>JSON.stringify(o,(_k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
  const matches=(actual,expected)=>Object.entries(expected).every(([k,v])=>canonical(typeof v==='number'&&numeric(actual[k])?Number(actual[k]):validDate(v)&&actual[k] instanceof Date?actual[k].toISOString().slice(0,10):actual[k]??null)===canonical(v??null));
  function csv(rows){const keys=[...new Set(rows.flatMap(r=>Object.keys(r)))];const cell=v=>{let s=v===null||v===undefined?'':typeof v==='object'?JSON.stringify(v):String(v);if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};return [keys.map(cell).join(','),...rows.map(r=>keys.map(k=>cell(r[k])).join(','))].join('\r\n');}
- return {TZ,MACROS,numeric,nullable,round,today,validDate,shiftDay,scale,estimate,totals,recipeTotals,cost,days,average,weightTrend,validateEntry,canonical,matches,csv};
+ return {TZ,MACROS,numeric,nullable,round,today,validDate,shiftDay,scale,estimate,totals,recipeTotals,cost,days,average,weightTrend,validateEntry,legacyEntry,canonical,matches,csv};
 });

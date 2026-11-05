@@ -9,7 +9,10 @@
   const allowed={foods:['key','name','brand','basis_quantity','basis_unit','calories','protein_g','carbs_g','fat_g','fiber_g','price_eur','price_quantity','price_unit','availability','confidence','source','notes','calories_low','calories_high','protein_low','protein_high'],recipes:['key','name','ingredients','reported_calories','reported_protein_g','notes'],entries:['key','logged_on','logged_time','name','food_key','recipe_key','quantity','unit','meal','calories','protein_g','carbs_g','fat_g','fiber_g','calories_low','calories_high','protein_low','protein_high','confidence','notes','source'],notes:['key','kind','logged_on','reported_calories','reported_protein_g','notes'],daily:['logged_on','status','notes']};
   for(const [type,keys] of Object.entries(allowed)){const seen=new Set();for(const row of d[type]){if(!row||typeof row!=='object'||Object.keys(row).some(k=>!keys.includes(k)))throw Error('Unknown or privileged field in '+type);const key=type==='daily'?row.logged_on:row.key;if(typeof key!=='string'||!key||seen.has(key))throw Error('Missing or duplicate '+type+' source key.');seen.add(key);}}
   for(const [type,keys] of Object.entries({profile:['sex','height_cm','starting_weight_kg','recent_reference_kg','notes'],goals:['protein_g','weight_min_kg','weight_max_kg','milestone_kg','walking_km','maintenance_low','maintenance_high','calorie_goal','notes']}))if(Object.keys(d[type]).some(k=>!keys.includes(k)))throw Error('Unknown or privileged '+type+' field.');
-  for(const row of d.entries)C.validateEntry(row);
+  const foodKeys=new Set(d.foods.map(f=>f.key)),recipeKeys=new Set(d.recipes.map(r=>r.key));
+  for(const food of d.foods){C.validateEntry({...food,logged_on:'2000-01-01',meal:'Other'});if(!C.numeric(food.basis_quantity)||Number(food.basis_quantity)<=0||!['g','ml','serving'].includes(food.basis_unit))throw Error('Invalid food nutrition basis.');}
+  for(const recipe of d.recipes){if(typeof recipe.name!=='string'||!recipe.name.trim()||recipe.name.length>200||!Array.isArray(recipe.ingredients)||!recipe.ingredients.length)throw Error('Invalid recipe.');for(const ingredient of recipe.ingredients){if(!Array.isArray(ingredient)||ingredient.length!==3)throw Error('Invalid recipe ingredient.');const [food,quantity,unit]=ingredient;if(food!==null&&!foodKeys.has(food))throw Error('Unknown recipe food reference.');if(quantity!==null&&(!C.numeric(quantity)||Number(quantity)<=0))throw Error('Invalid ingredient quantity.');if(unit!==null&&!['g','ml','serving'].includes(unit))throw Error('Invalid ingredient unit.');}}
+  for(const row of d.entries){C.validateEntry(row);if((row.food_key&&!foodKeys.has(row.food_key))||(row.recipe_key&&!recipeKeys.has(row.recipe_key)))throw Error('Unknown entry catalog or recipe reference.');if(row.food_key&&row.recipe_key)throw Error('An entry cannot reference both a food and a recipe.');}
   for(const row of d.daily)if(!C.validDate(row.logged_on)||!['partial','complete','unlogged'].includes(row.status))throw Error('Invalid daily status.');
   for(const row of d.notes)if(row.logged_on!==null&&row.logged_on!==undefined&&!C.validDate(row.logged_on))throw Error('Invalid reference date.');
   return d;
@@ -19,7 +22,7 @@
   validateDataset(dataset);
   if(!uid)throw Error('An authenticated user is required.');
   const rows=[],ids={};
-  async function add(table,key,fields,evidence){const import_key=dataset.source_key+':'+key,id=await deterministicId(uid,table,import_key);ids[table+':'+key]=id;const row={id,user_id:uid,import_key,source:dataset.source_description||'User-supplied private historical input',confidence:'historical_estimate',notes:'',...fields,evidence};rows.push({table,row});return id;}
+  async function add(table,key,fields,evidence){const import_key=dataset.source_key+':'+key,id=await deterministicId(uid,table,import_key);ids[table+':'+key]=id;const row={id,user_id:uid,import_key,source:dataset.source_description||'User-supplied private historical input',confidence:'historical_estimate',notes:'',...Object.fromEntries(Object.entries(fields).filter(([,value])=>value!==undefined)),evidence};rows.push({table,row});return id;}
   for(const food of dataset.foods){const {key,...fields}=food;await add('nutrition_foods',key,fields,food);}
   for(const recipe of dataset.recipes){await add('nutrition_recipes',recipe.key,{name:recipe.name,servings:1,notes:recipe.notes,confidence:'historical_recipe'},recipe);}
   for(const recipe of dataset.recipes){
@@ -34,29 +37,43 @@
   return rows;
  }
  function preview(manifest,existing,legacy=[]){
-  const results=[];
+  const results=[],blockedRecipes=new Set();
   for(const item of manifest){const same=(existing[item.table]||[]).find(r=>r.import_key===item.row.import_key||r.id===item.row.id);
    const singleton=['nutrition_profiles','nutrition_goals'].includes(item.table)&&(existing[item.table]||[]).length;
    const dayCollision=item.table==='nutrition_days'&&(existing[item.table]||[]).some(r=>r.logged_on===item.row.logged_on);
-   const duplicate=item.table==='nutrition_entries'&&legacy.concat(existing.nutrition_entries||[]).filter(r=>!r.deleted_at).some(r=>r.logged_on===item.row.logged_on&&(String(r.food_name||r.name).toLowerCase()===item.row.name.toLowerCase()||(C.numeric(r.calories)&&Number(r.calories)===item.row.calories&&Number(r.protein_g)===item.row.protein_g)));
+   // Macro equality alone is never meal identity. A matching name/date is a
+   // review candidate unless supplied meal/time/quantity distinguishes it.
+   const duplicate=item.table==='nutrition_entries'&&legacy.concat(existing.nutrition_entries||[]).filter(r=>!r.deleted_at).some(r=>{
+    const normalized=v=>String(v??'').trim().toLowerCase().replace(/\s+/g,' ');
+    if(r.logged_on!==item.row.logged_on||normalized(r.food_name||r.name)!==normalized(item.row.name))return false;
+    if(r.meal&&item.row.meal&&r.meal!=='Other'&&item.row.meal!=='Other'&&normalized(r.meal)!==normalized(item.row.meal))return false;
+    if(r.logged_time&&item.row.logged_time&&r.logged_time.slice(0,5)!==item.row.logged_time.slice(0,5))return false;
+    if(r.unit&&item.row.unit&&r.unit===item.row.unit&&C.numeric(r.quantity)&&C.numeric(item.row.quantity)&&Number(r.quantity)!==Number(item.row.quantity))return false;
+    return true;
+   });
    let action=same?(C.matches(same,item.row)?'skip':'flag'):(singleton||dayCollision||duplicate?'flag':'create');
    // Do not create an entry or ingredient when its parent has a conflicting import identifier.
    const refs=[item.row.food_id,item.row.recipe_id].filter(Boolean);
    if(action==='create'&&results.some(r=>r.action==='flag'&&refs.includes(r.row.id)))action='flag';
-   results.push({...item,action,reason:same?(action==='skip'?'Identical imported record':'Import identifier exists with different or edited data; preserved'):(singleton||dayCollision?'Existing user profile, goals or daily status preserved':duplicate?'Possible duplicate legacy meal; manual review required':action==='flag'?'Related catalog / recipe conflict':'New record')});
+   if(action==='create'&&item.table==='nutrition_entries'&&blockedRecipes.has(item.row.recipe_id))action='flag';
+   if(action==='flag'&&item.table==='nutrition_ingredients')blockedRecipes.add(item.row.recipe_id);
+   results.push({...item,action,reason:same?(action==='skip'?'Identical imported record':'Import identifier exists with different or edited data; preserved'):(singleton||dayCollision?'Existing user profile, goals or daily status preserved':duplicate?'Possible duplicate meal; manual review required':action==='flag'?'Related catalog / recipe conflict':'New record')});
   }return results;
  }
  async function execute(items,api,uid,isCurrent=()=>true){
-  const report={created:[],skipped:[],flagged:[],failed:[]};
+  const report={created:[],skipped:[],flagged:[],failed:[]},blockedRecipes=new Set();
+  // Reject the entire invalid plan before any inserts.
+  for(const item of items)if(item.row.user_id!==uid||!TABLES.includes(item.table)||!['create','skip','flag'].includes(item.action))throw Error('Invalid import plan or owner mismatch.');
   for(const item of items){if(!isCurrent())throw Object.assign(Error('Account changed; import stopped.'),{report});
    if(item.row.user_id!==uid)throw Error('Import owner mismatch.');
+   if(item.action==='flag'&&item.table==='nutrition_ingredients')blockedRecipes.add(item.row.recipe_id);
    if(item.action!=='create'){report[item.action==='skip'?'skipped':'flagged'].push(item);continue;}
-   if(report.failed.concat(report.flagged).some(r=>[item.row.food_id,item.row.recipe_id].includes(r.row.id))){report.flagged.push({...item,reason:'Related record failed or conflicted'});continue;}
+   if((item.table==='nutrition_entries'&&blockedRecipes.has(item.row.recipe_id))||report.failed.concat(report.flagged).some(r=>[item.row.food_id,item.row.recipe_id].includes(r.row.id))){if(item.table==='nutrition_ingredients')blockedRecipes.add(item.row.recipe_id);report.flagged.push({...item,reason:'Related record failed or conflicted'});continue;}
    try{await api.insert(item.table,item.row);report.created.push(item);}catch(error){
-    if(error.code==='23505'){let actual;try{actual=await api.find(item.table,item.row.import_key);}catch(lookupError){report.failed.push({...item,reason:lookupError.message});throw Object.assign(Error('Conflict verification interrupted; preview again before retrying.'),{report});}const identical=actual&&C.matches(actual,item.row);report[identical?'skipped':'flagged'].push({...item,reason:identical?'Already inserted concurrently':'Concurrent conflict; existing record preserved'});}
+    if(error.code==='23505'){let actual;try{actual=await api.find(item.table,item.row.import_key);}catch(lookupError){report.failed.push({...item,reason:lookupError.message});throw Object.assign(Error('Conflict verification interrupted; preview again before retrying.'),{report});}const identical=actual&&C.matches(actual,item.row);if(!identical&&item.table==='nutrition_ingredients')blockedRecipes.add(item.row.recipe_id);report[identical?'skipped':'flagged'].push({...item,reason:identical?'Already inserted concurrently':'Concurrent conflict; existing record preserved'});}
     else {report.failed.push({...item,reason:error.message});throw Object.assign(Error('Import interrupted; completed inserts are safe to preview again.'),{report});}
    }
-  }return report;
+  }if(!isCurrent())throw Object.assign(Error('Account changed; import stopped.'),{report});return report;
  }
  return {TABLES,validateDataset,deterministicId,manifest,preview,execute};
 });

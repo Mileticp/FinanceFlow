@@ -1,4 +1,4 @@
-const CACHE='financeflow-shell-v2.0.0';
+const CACHE='financeflow-shell-v2.0.1';
 const SHELL=['./','./index.html','./food.html','./css/v2.css','./js/core.js','./js/importer.js','./js/app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('financeflow-shell-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

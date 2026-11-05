@@ -17,7 +17,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  const foods=()=>rows('nutrition_foods');
  const goals=()=>rows('nutrition_goals')[0]||{};
  const profile=()=>rows('nutrition_profiles')[0]||{};
- function entries(){return [...rows('nutrition_entries').filter(active).map(r=>({...r,_table:'nutrition_entries'})),...legacy.map(r=>({...r,name:r.food_name,confidence:r.estimated?'legacy_estimate':'legacy_unverified',_table:'food_logs',source:'Existing food_logs record',protein_g:Number(r.protein_g)===0?null:r.protein_g,notes:(r.notes||'')+(Number(r.protein_g)===0?' · Legacy protein zero retained in database; unknown in v2 until verified.':'')}))];}
+ function entries(){return [...rows('nutrition_entries').filter(active).map(r=>({...r,_table:'nutrition_entries'})),...legacy.map(C.legacyEntry)];}
  const summary=()=>C.totals(entries().filter(r=>r.logged_on===day));
  const badge=(label,kind='partial')=>`<span class="status-pill ${E(kind)}">${E(label)}</span>`;
  const button=(action,label,extra='')=>`<button type="button" class="btn secondary" data-action="${action}" ${extra}>${label}</button>`;
@@ -145,10 +145,10 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
    `<div class="full">${button('scale-entry','Calculate quantity')}<p class="foot">No g/ml conversion is assumed. Values below are totals for the entered quantity; blank macros mean unknown. Manual overrides are allowed.</p></div>`+
    C.MACROS.map(k=>field('entry_'+k,({calories:'Calories (kcal)',protein_g:'Protein (g)',carbs_g:'Carbohydrates (g)',fat_g:'Fat (g)',fiber_g:'Fiber (g)'})[k],'number',value[k],'min="0" max="100000" step="0.01"')).join('')+
    field('entryCaloriesLow','Calories lower estimate','number',value.calories_low,'min="0" step="0.01"')+field('entryCaloriesHigh','Calories upper estimate','number',value.calories_high,'min="0" step="0.01"')+field('entryProteinLow','Protein lower estimate (g)','number',value.protein_low,'min="0" step="0.01"')+field('entryProteinHigh','Protein upper estimate (g)','number',value.protein_high,'min="0" step="0.01"')+
-   select('entryConfidence','Confidence',confidenceOptions.some(o=>o[0]===value.confidence)?confidenceOptions:[...confidenceOptions,[value.confidence,value.confidence]],value.confidence)+field('entrySource','Source / provenance','text',value.source||'User entered')+notesField('entryNotes',row?._table==='food_logs'?(legacy.find(r=>r.id===row.id)?.notes||''):(value.notes||''))+(row?._table==='food_logs'?'<p class="foot full">Legacy storage requires numeric macros. Blank fields retain their original stored values; a legacy protein zero stays unverified in the v2 view. New v2 entries support true unknown values.</p>':''),'entryForm');
+   select('entryConfidence','Confidence',confidenceOptions.some(o=>o[0]===value.confidence)?confidenceOptions:[...confidenceOptions,[value.confidence,value.confidence]],value.confidence)+field('entrySource','Source / provenance','text',value.source||'User entered')+notesField('entryNotes',row?._table==='food_logs'?(legacy.find(r=>r.id===row.id)?.notes||''):(value.notes||''))+(row?._table==='food_logs'?'<p class="foot full">Legacy storage requires numeric macros. Blank fields retain their original stored values; recorded zeros are preserved and remain unverified; older forms also used zero for unknown. New v2 entries support true unknown values.</p>':''),'entryForm');
  }
  function openFood(food=null){editing=food;const f=food||{basis_quantity:100,basis_unit:'g',availability:'unknown',confidence:'unverified'};
-  openDialog(food?'Edit catalog food':'Create custom food',field('foodName','Product name','text',f.name,'required maxlength="200"')+field('foodBrand','Brand / variant','text',f.brand)+field('foodBasis','Nutrition basis quantity','number',f.basis_quantity,'required min="0.001" step="0.001"')+select('foodUnit','Basis unit',[['g','g'],['ml','ml'],['serving','serving']],f.basis_unit)+C.MACROS.map(k=>field('food_'+k,k.replace('_g',' (g)'),'number',f[k],'min="0" max="100000" step="0.01"')).join('')+field('foodPrice','Actual price EUR (blank if unknown)','number',f.price_eur,'min="0" step="0.01"')+field('foodPriceQuantity','Quantity covered by price','number',f.price_quantity,'min="0.001" step="0.001"')+select('foodPriceUnit','Price quantity unit',[['','Unknown'],['g','g'],['ml','ml'],['serving','serving']],f.price_unit||'')+select('foodAvailability','Purchase / availability',[['unknown','Unknown'],['reported_available','Reported available'],['purchased','Purchased (confirmed)'],['considered','Considered only'],['rejected','Considered and rejected']],f.availability)+field('foodCaloriesLow','Calories lower estimate','number',f.calories_low,'min="0" step="0.01"')+field('foodCaloriesHigh','Calories upper estimate','number',f.calories_high,'min="0" step="0.01"')+field('foodProteinLow','Protein lower estimate (g)','number',f.protein_low,'min="0" step="0.01"')+field('foodProteinHigh','Protein upper estimate (g)','number',f.protein_high,'min="0" step="0.01"')+select('foodConfidence','Confidence',confidenceOptions,f.confidence)+field('foodSource','Source','text',f.source||'User entered')+notesField('foodNotes',f.notes),'foodFormV2');
+  openDialog(food?'Edit catalog food':'Create custom food',field('foodName','Product name','text',f.name,'required maxlength="200"')+field('foodBrand','Brand / variant','text',f.brand)+field('foodBasis','Nutrition basis quantity','number',f.basis_quantity,'required min="0.001" step="0.001"')+select('foodUnit','Basis unit',[['g','g'],['ml','ml'],['serving','serving']],f.basis_unit)+C.MACROS.map(k=>field('food_'+k,k.replace('_g',' (g)'),'number',f[k],'min="0" max="100000" step="0.01"')).join('')+field('foodPrice','Actual price EUR (blank if unknown)','number',f.price_eur,'min="0" step="0.01"')+field('foodPriceQuantity','Quantity covered by price','number',f.price_quantity,'min="0.001" step="0.001"')+select('foodPriceUnit','Price quantity unit',[['','Unknown'],['g','g'],['ml','ml'],['serving','serving']],f.price_unit||'')+select('foodAvailability','Purchase / availability',[['unknown','Unknown'],['reported_available','Reported available'],['purchased','Purchased (confirmed)'],['considered','Considered only'],['rejected','Considered and rejected']],f.availability)+field('foodCaloriesLow','Calories lower estimate','number',f.calories_low,'min="0" step="0.01"')+field('foodCaloriesHigh','Calories upper estimate','number',f.calories_high,'min="0" step="0.01"')+field('foodProteinLow','Protein lower estimate (g)','number',f.protein_low,'min="0" step="0.01"')+field('foodProteinHigh','Protein upper estimate (g)','number',f.protein_high,'min="0" step="0.01"')+select('foodConfidence','Confidence',confidenceOptions.some(o=>o[0]===f.confidence)?confidenceOptions:[...confidenceOptions,[f.confidence,f.confidence]],f.confidence)+field('foodSource','Source','text',f.source||'User entered')+notesField('foodNotes',f.notes),'foodFormV2');
  }
  function openRecipe(){recipeDraft=[];openDialog('Build a recipe',field('recipeName','Recipe name','text','','required maxlength="200"')+field('recipeServings','Number of servings','number',1,'required min="0.01" step="0.01"')+`<div class="full notice">Saving a recipe does not log a consumed meal.</div>`+select('ingredientFood','Ingredient',[['','Choose catalog food'],...foods().map(f=>[f.id,`${f.name} / ${f.basis_unit}`])])+field('ingredientQuantity','Ingredient quantity','number','','min="0.001" step="0.001"')+`<div class="full">${button('add-ingredient','+ Add ingredient')}<div id="recipeDraft"></div></div>`+notesField('recipeNotes'),'recipeForm');}
  function renderDraft(){const t=C.recipeTotals(recipeDraft,foods(),Number($('recipeServings').value)||1);$('recipeDraft').innerHTML=recipeDraft.map((i,n)=>`<p class="metric-note">${E(i.ingredient_name)} · ${num(i.quantity)} ${E(i.unit)} ${button('remove-ingredient','Remove',`data-index="${n}"`)}</p>`).join('')+`<p class="notice">Known subtotal per serving: ${num(t.calories)} kcal / ${num(t.protein_g)} g protein. Unknown calories: ${t.calories_unknown||0} ingredients; unknown protein: ${t.protein_g_unknown||0}.</p>`;}
@@ -157,6 +157,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  const val=id=>$(id).value.trim(),nval=id=>C.nullable(val(id));
  function saveForm(form){
   return perform(async owner=>{
+   const token=generation;
    if(form==='entryForm'){
     const row={name:val('entryName'),logged_on:val('entryDay'),logged_time:val('entryTime')||null,meal:val('entryMeal'),quantity:nval('entryQuantity'),unit:val('entryUnit')||null,food_id:val('entryFood')||null,recipe_id:editing?.recipe_id||null,confidence:val('entryConfidence'),source:val('entrySource'),notes:val('entryNotes')};
     for(const k of C.MACROS)row[k]=nval('entry_'+k);Object.assign(row,{calories_low:nval('entryCaloriesLow'),calories_high:nval('entryCaloriesHigh'),protein_low:nval('entryProteinLow'),protein_high:nval('entryProteinHigh')});C.validateEntry(row);
@@ -164,7 +165,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
      const original=legacy.find(r=>r.id===editing.id);
      await write('food_logs',{food_name:row.name,logged_on:row.logged_on,meal:row.meal,quantity:val('entryQuantity'),calories:row.calories??original.calories,protein_g:row.protein_g??original.protein_g,estimated:C.estimate(row),notes:row.notes},editing.id);
     }else await write('nutrition_entries',row,editing?.id||null);
-    day=row.logged_on;
+    if(token!==generation)return false;day=row.logged_on;
    }
    if(form==='foodFormV2'){
     const row={name:val('foodName'),brand:val('foodBrand')||null,basis_quantity:nval('foodBasis'),basis_unit:val('foodUnit'),price_eur:nval('foodPrice'),price_quantity:nval('foodPriceQuantity'),price_unit:val('foodPriceUnit')||null,availability:val('foodAvailability'),confidence:val('foodConfidence'),source:val('foodSource'),notes:val('foodNotes')};for(const k of C.MACROS)row[k]=nval('food_'+k);Object.assign(row,{calories_low:nval('foodCaloriesLow'),calories_high:nval('foodCaloriesHigh'),protein_low:nval('foodProteinLow'),protein_high:nval('foodProteinHigh')});C.validateEntry({...row,logged_on:day,meal:'Other'});if(!row.name||!row.basis_quantity||row.basis_quantity<=0)throw Error('Enter a name and a positive nutrition basis.');await write('nutrition_foods',row,editing?.id||null);
@@ -179,12 +180,12 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
    if(form==='dayForm'){const old=rows('nutrition_days').find(r=>r.logged_on===day);await write('nutrition_days',{logged_on:day,status:val('dayStatus'),notes:val('dayNotes')},old?.id);}
    if(form==='goalsForm'){const row={protein_g:nval('goalProtein'),calorie_goal:nval('goalCalories'),weight_min_kg:nval('goalMin'),weight_max_kg:nval('goalMax'),milestone_kg:nval('goalMilestone'),walking_km:nval('goalWalk'),maintenance_low:nval('goalMaintenanceLow'),maintenance_high:nval('goalMaintenanceHigh'),net_pay_percent:nval('goalNet'),notes:val('goalNotes')};if(row.calorie_goal!==null&&row.calorie_goal<=1200&&!confirm('This app does not recommend a 1,200 kcal or lower diet. Save this only if it is a target you independently chose with appropriate guidance?'))return false;await write('nutrition_goals',row,goals().id);}
    if(form==='profileForm')await write('nutrition_profiles',{sex:val('profileSex')||null,height_cm:nval('profileHeight'),starting_weight_kg:nval('profileStart'),recent_reference_kg:nval('profileRecent'),notes:val('profileNotes')},profile().id);
-   if(dialog.open)dialog.close();return true;
+   if(token!==generation)return false;if(dialog.open)dialog.close();return true;
   },'Saved.');
  }
  function download(name,text,type='application/json'){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  async function allBackup(owner){const result={version:2,exported_at:new Date().toISOString(),timezone:C.TZ,authenticated_user:owner};for(const table of [...tables,'food_logs','weight_logs','transactions','work_shifts','budgets','settings','financeflow_data'])result[table]=await fetchAll(table,owner);return result;}
- async function previewImport(){const token=generation,owner=user();if(!schemaReady)throw Error('Apply the additive migration before previewing imports.');if(!dataset)throw Error('Choose your private historical JSON file first.');await reload(owner,token);if(token!==generation)return;previewRows=I.preview(await I.manifest(dataset,owner),store,legacy);renderSettings();paintBusy();status('Import preview ready. Review create, skip and flagged records before confirming.');}
+ async function previewImport(){const token=generation,owner=user();if(!schemaReady)throw Error('Apply the additive migration before previewing imports.');if(!dataset)throw Error('Choose your private historical JSON file first.');await reload(owner,token);if(token!==generation)return;const manifest=await I.manifest(dataset,owner);if(token!==generation||getUser()?.id!==owner)return;previewRows=I.preview(manifest,store,legacy);renderSettings();paintBusy();status('Import preview ready. Review create, skip and flagged records before confirming.');}
  async function handle(action,element){
   if(action.startsWith('goto-'))return navigate(action.slice(5),true);
   if(action==='close-dialog')return dialog.close();
@@ -200,7 +201,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
   if(action==='scale-entry'){
    const food=foods().find(f=>f.id===val('entryFood'));let scaled;
    if(food)scaled=C.scale(food,nval('entryQuantity'),val('entryUnit'));
-   else if(editing?.recipe_id){const recipe=rows('nutrition_recipes').find(r=>r.id===editing.recipe_id),quantity=nval('entryQuantity');if(!quantity||quantity<=0||val('entryUnit')!=='serving')throw Error('Enter a positive number of recipe servings.');const totals=C.recipeTotals(rows('nutrition_ingredients').filter(i=>i.recipe_id===recipe.id),foods(),recipe.servings);scaled={};for(const key of C.MACROS)scaled[key]=totals[key+'_unknown']||totals[key]===null?null:C.round(totals[key]*quantity);}
+   else if(editing?.recipe_id){const recipe=rows('nutrition_recipes').find(r=>r.id===editing.recipe_id),quantity=nval('entryQuantity');if(!quantity||quantity<=0||val('entryUnit')!=='serving')throw Error('Enter a positive number of recipe servings.');const totals=C.recipeTotals(rows('nutrition_ingredients').filter(i=>i.recipe_id===recipe.id),foods(),recipe.servings);scaled={};for(const key of [...C.MACROS,'calories_low','calories_high','protein_low','protein_high'])scaled[key]=totals[key+'_unknown']||totals[key]===null?null:C.round(totals[key]*quantity);}
    else throw Error('Choose a catalog food or recipe first.');
    for(const k of C.MACROS)$('entry_'+k).value=scaled[k]??'';for(const [id,k] of [['entryCaloriesLow','calories_low'],['entryCaloriesHigh','calories_high'],['entryProteinLow','protein_low'],['entryProteinHigh','protein_high']])$(id).value=scaled[k]??'';return;
   }
@@ -213,13 +214,15 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
   if(action==='use-recipe'){
    const r=rows('nutrition_recipes').find(r=>r.id===element.dataset.id),t=C.recipeTotals(rows('nutrition_ingredients').filter(i=>i.recipe_id===r.id),foods(),r.servings);
    openEntry();editing={recipe_id:r.id};$('entryName').value=r.name;$('entryQuantity').value=1;$('entryUnit').value='serving';for(const k of C.MACROS)$('entry_'+k).value=t[k+'_unknown']?'':t[k]??'';
+   for(const [id,k] of [['entryCaloriesLow','calories_low'],['entryCaloriesHigh','calories_high'],['entryProteinLow','protein_low'],['entryProteinHigh','protein_high']])$(id).value=t[k]??'';
    $('entryConfidence').value='assistant_estimate';$('entrySource').value='Recipe calculation: '+r.name;$('entryNotes').value=`Known ingredient subtotal per serving: ${num(t.calories)} kcal, ${num(t.protein_g)} g protein; ${t.calories_unknown||0} calorie values and ${t.protein_g_unknown||0} protein values unknown. Enter a reviewed total or leave unknown. Original recipe: ${r.notes}`;return;
   }
   if(action==='delete-entry'){
    const row=entries().find(r=>r.id===element.dataset.id);if(!row||!confirm('Delete this entry? You can undo while this page remains open.'))return;
    return perform(async owner=>{
-    if(row._table==='food_logs'){const original=legacy.find(r=>r.id===row.id);const {data,error}=await cloud.from('food_logs').delete().eq('id',row.id).eq('user_id',owner).select('id');if(error)throw error;if(!data?.length)throw Error('Nothing was deleted.');undo={table:'food_logs',row:original};}
-    else {const deleted_at=new Date().toISOString();await write('nutrition_entries',{deleted_at},row.id);undo={table:'nutrition_entries',row,deleted_at};}return true;
+    const token=generation;
+    if(row._table==='food_logs'){const original=legacy.find(r=>r.id===row.id);const {data,error}=await cloud.from('food_logs').delete().eq('id',row.id).eq('user_id',owner).select('id');if(error)throw error;if(!data?.length)throw Error('Nothing was deleted.');if(token!==generation)return false;undo={table:'food_logs',row:original};}
+    else {const deleted_at=new Date().toISOString();await write('nutrition_entries',{deleted_at},row.id);if(token!==generation)return false;undo={table:'nutrition_entries',row,deleted_at};}return true;
    },'Entry deleted. Undo is available in the diary.',false);
   }
   if(action==='undo')return perform(async owner=>{
@@ -239,7 +242,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
   if(action==='range'){range.end=C.today();range.start=C.shiftDay(range.end,1-Number(element.dataset.days));renderStatistics();return;}
   if(action==='apply-range'){const next={start:val('rangeStart'),end:val('rangeEnd')};C.days([],[],next.start,next.end);range=next;renderStatistics();return;}
   if(action==='refresh')return perform(async()=>false,'Cloud records refreshed.',false);
-  if(action==='preview-import'){if(busy)return;busy=true;paintBusy();try{await previewImport();}finally{busy=false;paintBusy();}return;}
+  if(action==='preview-import'){if(busy)return;const token=generation;busy=true;paintBusy();try{await previewImport();}finally{if(token===generation){busy=false;paintBusy();}}return;}
   if(action==='apply-import'){
    if(!previewRows)throw Error('Preview the import first.');const owner=user(),token=generation;
    if(!confirm(`Import create-only records into ${getUser()?.email||owner}? Conflicts will be flagged and existing records preserved.`))return;
@@ -247,7 +250,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
     // Re-read immediately before writing; unique constraints also protect concurrent imports.
     await previewImport();if(token!==generation)return false;
     const api={insert:async(table,row)=>{const {error}=await cloud.from(table).insert(row);if(error)throw error;},find:async(table,key)=>{const {data,error}=await cloud.from(table).select('*').eq('user_id',owner).eq('import_key',key).maybeSingle();if(error)throw error;return data;}};
-    importReport=await I.execute(previewRows,api,owner,()=>token===generation&&getUser()?.id===owner);
+    const report=await I.execute(previewRows,api,owner,()=>token===generation&&getUser()?.id===owner);if(token!==generation)return false;importReport=report;
     download('financeflow-import-report.json',JSON.stringify(importReport,null,2));return importReport.created.length>0;
    },'Import finished. Created, skipped and flagged records are listed in Settings.');
   }
@@ -259,7 +262,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
    return false;
   },'Export complete. Your browser may ask to allow multiple CSV downloads.');
  }
- function selectEntryFood(food){$('entryName').value=food.name;$('entryQuantity').value=food.basis_quantity;$('entryUnit').value=food.basis_unit;$('entryConfidence').value=food.confidence;$('entrySource').value=food.source;$('entryNotes').value=food.notes;handle('scale-entry',null);}
+ function selectEntryFood(food){if(editing?.recipe_id)editing={...editing,recipe_id:null};$('entryName').value=food.name;$('entryQuantity').value=food.basis_quantity;$('entryUnit').value=food.basis_unit;$('entryConfidence').value=food.confidence;$('entrySource').value=food.source;$('entryNotes').value=food.notes;handle('scale-entry',null);}
  document.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(!target||target.disabled)return;if(busy&&target.dataset.action!=='close-dialog')return;Promise.resolve().then(()=>handle(target.dataset.action,target)).catch(error=>{if(dialog.open)$('editorError').textContent=error.message;else status(error.message,true);});});
  document.addEventListener('submit',event=>{
   if(!['entryForm','foodFormV2','recipeForm','weightFormV2','activityForm','dayForm','goalsForm','profileForm'].includes(event.target.id))return;
@@ -267,9 +270,9 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  });
  document.addEventListener('change',async event=>{
   if(event.target.id==='historyFile'){
-   const token=generation,file=event.target.files?.[0];if(!file)return;
+   const token=generation,file=event.target.files?.[0];if(!file)return;dataset=null;previewRows=null;
    try{if(file.size>10e6)throw Error('Historical file exceeds 10 MB.');const parsed=JSON.parse(await file.text());I.validateDataset(parsed);if(token!==generation)return;dataset=parsed;previewRows=null;renderSettings();status('Private input loaded on this device. Preview before confirming cloud insertion.');}
-   catch(error){if(token===generation)status('Private input not loaded: '+error.message,true);}return;
+   catch(error){if(token===generation){renderSettings();status('Private input not loaded: '+error.message,true);}}return;
   }
   if(event.target.id.startsWith('dashboardDay-')){if(C.validDate(event.target.value)){day=event.target.value;render();}}
   if(event.target.id==='foodFilter'){catalogFilter=event.target.value;renderNutrition();}
@@ -282,7 +285,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  });
  function reset(){generation++;uid=null;store={};legacy=[];weights=[];busy=false;loaded=false;schemaReady=false;undo=null;previewRows=null;importReport=null;dataset=null;editing=null;recipeDraft=[];if(dialog.open)dialog.close();dialog.replaceChildren();status('Sign in to load your private dashboard.');render();}
  function connect(account){reset();uid=account.id;const token=generation;busy=true;status('Loading your dashboard…');reload(uid,token).then(()=>{if(token===generation&&schemaReady)status('Cloud connected · Europe/Ljubljana');}).catch(error=>{if(token===generation)status('Dashboard load failed: '+error.message,true);}).finally(()=>{if(token===generation){busy=false;paintBusy();}});}
- cloud?.auth.onAuthStateChange?.(event=>{if(event==='SIGNED_OUT'){onAuthSignOut?.();reset();}});
+ cloud?.auth.onAuthStateChange?.((event,session)=>{if(event==='SIGNED_OUT'||(session?.user&&uid&&session.user.id!==uid)){onAuthSignOut?.();reset();}});
  const requested=location.hash.slice(1);reset();navigate(requested||'overview');
  return {connect,reset};
 };
