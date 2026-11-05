@@ -1,0 +1,28 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {PGlite}=require('@electric-sql/pglite'),I=require('../js/importer.js'),C=require('../js/core.js'),dataset=require('./fixtures/synthetic-history.json');
+const A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222';
+test('additive migration, real Postgres RLS, atomic recipes and repeat-safe import',async()=>{
+ const db=new PGlite();try{await db.exec(`create role authenticated;create role anon;create schema auth;create table auth.users(id uuid primary key);insert into auth.users values('${A}'),('${B}');create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;create table public.food_logs(id uuid primary key,user_id uuid,calories numeric);insert into public.food_logs values(gen_random_uuid(),'${A}',42);create table public.weight_logs(id uuid primary key,user_id uuid,logged_on date,weight_kg numeric);insert into public.weight_logs values(gen_random_uuid(),'${A}','2026-01-01',101);`);
+ const migration=fs.readFileSync(path.join(__dirname,'../supabase/migrations',fs.readdirSync(path.join(__dirname,'../supabase/migrations'))[0]),'utf8');await db.exec(migration);
+ assert.equal((await db.query('select calories from food_logs')).rows[0].calories,'42');assert.equal((await db.query('select weight_kg from weight_logs')).rows[0].weight_kg,'101');
+ await db.exec(`set role authenticated;set request.jwt.claim.sub='${A}';`);
+ const manifest=await I.manifest(dataset,A);const api={insert:async(table,row)=>{const keys=Object.keys(row);await db.query(`insert into ${table}(${keys.join(',')}) values(${keys.map((_,i)=>'$'+(i+1)).join(',')})`,keys.map(k=>k==='evidence'?JSON.stringify(row[k]):row[k]));},find:async(table,key)=>(await db.query(`select * from ${table} where import_key=$1`,[key])).rows[0]};
+ let report=await I.execute(I.preview(manifest,{}),api,A);assert.equal(report.failed.length,0);assert.equal(report.created.length,manifest.length);
+ const existing={};for(const table of I.TABLES)existing[table]=(await db.query(`select * from ${table}`)).rows;
+ const preview=I.preview(manifest,existing);assert.equal(preview.every(r=>r.action==='skip'),true);report=await I.execute(preview,api,A);assert.equal(report.created.length,0);const concurrent=await I.execute(manifest.map(item=>({...item,action:'create'})),api,A);assert.equal(concurrent.skipped.length,manifest.length);assert.equal(concurrent.created.length,0);
+ assert.equal((await db.query('select count(*) from nutrition_entries')).rows[0].count,3);
+ await db.query(`update nutrition_entries set calories=600 where import_key=$1`,[manifest.find(r=>r.table==='nutrition_entries').row.import_key]);existing.nutrition_entries=(await db.query('select * from nutrition_entries')).rows;assert.equal(I.preview(manifest,existing).filter(r=>r.action==='flag').length,1);
+ const foodId=existing.nutrition_foods[0].id;
+ await db.exec(`set request.jwt.claim.sub='${B}';`);assert.equal((await db.query('select * from nutrition_entries')).rows.length,0);
+ await assert.rejects(()=>api.insert('nutrition_foods',{user_id:A,name:'Cross owner',basis_quantity:100,basis_unit:'g'}),/row-level security/);
+ await db.query("insert into nutrition_recipes(user_id,name) values($1,'B recipe')",[B]);const bRecipe=(await db.query('select id from nutrition_recipes')).rows[0].id;
+ await assert.rejects(()=>db.query('insert into nutrition_ingredients(user_id,recipe_id,food_id,ingredient_name,quantity,unit) values($1,$2,$3,$4,1,$5)',[B,bRecipe,foodId,'Cross-owner ingredient','g']),/foreign key/);
+ await db.exec(`set request.jwt.claim.sub='${A}';`);const before=(await db.query('select count(*) from nutrition_recipes')).rows[0].count;
+ await assert.rejects(()=>db.query('select nutrition_create_recipe($1::jsonb,$2::jsonb)',[JSON.stringify({name:'Rollback recipe',servings:1}),JSON.stringify([{food_id:'99999999-9999-4999-8999-999999999999',ingredient_name:'Missing',quantity:1,unit:'g'}])]),/foreign key/);assert.equal((await db.query('select count(*) from nutrition_recipes')).rows[0].count,before);
+ const beforeMeals=(await db.query('select count(*) from nutrition_entries')).rows[0].count;
+ await db.query('select nutrition_create_recipe($1::jsonb,$2::jsonb)',[JSON.stringify({name:'Good recipe',servings:1}),JSON.stringify([{food_id:foodId,ingredient_name:'Food',quantity:1,unit:'g'}])]);assert.equal((await db.query('select count(*) from nutrition_entries')).rows[0].count,beforeMeals);
+ const row=(await db.query('select * from nutrition_entries limit 1')).rows[0];await db.query('update nutrition_entries set name=$1 where id=$2',['Edited',row.id]);await db.query('update nutrition_entries set deleted_at=now() where id=$1',[row.id]);assert.ok((await db.query('select deleted_at from nutrition_entries where id=$1',[row.id])).rows[0].deleted_at);await db.query('update nutrition_entries set deleted_at=null where id=$1',[row.id]);assert.equal((await db.query('select name from nutrition_entries where id=$1',[row.id])).rows[0].name,'Edited');
+ await assert.rejects(()=>db.query('update nutrition_entries set user_id=$1 where id=$2',[B,row.id]),/row-level security/);
+ await db.exec('reset role;set role anon;');await assert.rejects(()=>db.query('select * from nutrition_entries'),/permission denied/);await assert.rejects(()=>db.query("select nutrition_create_recipe('{}','[]')"),/permission denied/);
+ }finally{await db.close();}
+});

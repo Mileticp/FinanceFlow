@@ -1,0 +1,9 @@
+node_modules/
+supabase/.temp/
+test-results/
+# Never commit private historical input, exports or health data.
+*.private.json
+*.private.md
+private/
+financeflow-all-*.json
+financeflow-import-report*.json
