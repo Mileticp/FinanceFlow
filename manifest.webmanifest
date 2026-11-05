@@ -1,0 +1,25 @@
+{
+  "id": "/FinanceFlow/",
+  "name": "FinanceFlow \u2014 Personal Finance",
+  "short_name": "FinanceFlow",
+  "description": "Personal finance and work shift tracker",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090e1b",
+  "theme_color": "#0b1020",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
