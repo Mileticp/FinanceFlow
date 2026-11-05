@@ -2,12 +2,12 @@
   "id": "/FinanceFlow/",
   "name": "FinanceFlow \u2014 Personal Finance",
   "short_name": "FinanceFlow",
-  "description": "Personal finance and work shift tracker",
+  "description": "Personal finance, work, nutrition and weight tracking",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#090e1b",
-  "theme_color": "#0b1020",
+  "background_color": "#101114",
+  "theme_color": "#101114",
   "icons": [
     {
       "src": "./icon-192.png",

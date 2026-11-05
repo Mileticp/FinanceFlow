@@ -9,6 +9,7 @@ Before enabling v2 nutrition writes, review and apply `supabase/migrations/*_nut
 - [Architecture and deployment](docs/ARCHITECTURE.md)
 - [Import status](docs/IMPORT-REPORT.md)
 - [Testing](docs/TESTING.md)
+- [Visual audit, design system and before/after screenshots](docs/DESIGN-REVIEW.md)
 - [Synthetic input example — fictional data only](tests/fixtures/synthetic-history.json)
 
 Development checks: `npm ci`, `npm test`, `npm run test:browser`. Tests use disposable PostgreSQL and mocked authentication without production writes.

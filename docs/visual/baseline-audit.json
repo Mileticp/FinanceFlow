@@ -1,0 +1,1108 @@
+{
+  "phase": "before",
+  "failures": [
+    {
+      "width": 320,
+      "view": "overview",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "finance",
+      "issues": [
+        {
+          "type": "target",
+          "element": "amount",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "description",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "budget",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalName",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalAmount",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "work",
+      "issues": [
+        {
+          "type": "target",
+          "element": "shiftHours",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftKm",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftNote",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "hourlyRate",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "kmRate",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 42.390625
+        },
+        {
+          "type": "control overflow",
+          "element": "×"
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.063521634615385
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "nutrition",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Day completeness & notes",
+          "width": 266,
+          "height": 36
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "weight",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "statistics",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        },
+        {
+          "type": "chart text",
+          "size": 6.65
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "view": "settings",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Nutrition & weight goals",
+          "width": 266,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "goalProtein",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalCalories",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMin",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMax",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMilestone",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalWalk",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceLow",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceHigh",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalNet",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "Undated profile references",
+          "width": 266,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "profileHeight",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileStart",
+          "width": 266,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileRecent",
+          "width": 266,
+          "height": 41
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "overview",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "finance",
+      "issues": [
+        {
+          "type": "target",
+          "element": "amount",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "description",
+          "width": 320,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "budget",
+          "width": 320,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalName",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalAmount",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "work",
+      "issues": [
+        {
+          "type": "target",
+          "element": "shiftHours",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftKm",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftNote",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "hourlyRate",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "kmRate",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 42.390625
+        },
+        {
+          "type": "control overflow",
+          "element": "×"
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        },
+        {
+          "type": "chart text",
+          "size": 4.888521634615385
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "nutrition",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Day completeness & notes",
+          "width": 320,
+          "height": 36
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "weight",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "statistics",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        },
+        {
+          "type": "chart text",
+          "size": 8
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "view": "settings",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Nutrition & weight goals",
+          "width": 320,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "goalProtein",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalCalories",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMin",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMax",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMilestone",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalWalk",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceLow",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceHigh",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalNet",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "Undated profile references",
+          "width": 320,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "profileHeight",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileStart",
+          "width": 152.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileRecent",
+          "width": 152.5,
+          "height": 41
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "finance",
+      "issues": [
+        {
+          "type": "target",
+          "element": "amount",
+          "width": 287.390625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "description",
+          "width": 589.765625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "budget",
+          "width": 462.234375,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalName",
+          "width": 223.609375,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalAmount",
+          "width": 223.625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "work",
+      "issues": [
+        {
+          "type": "target",
+          "element": "shiftHours",
+          "width": 287.390625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftKm",
+          "width": 287.375,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "shiftNote",
+          "width": 287.390625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "hourlyRate",
+          "width": 223.609375,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "kmRate",
+          "width": 223.625,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "×",
+          "width": 26.875,
+          "height": 42.390625
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "nutrition",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Source & notes",
+          "width": 890.921875,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "Source & notes",
+          "width": 890.921875,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "Day completeness & notes",
+          "width": 1116,
+          "height": 36
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "statistics",
+      "issues": [
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        },
+        {
+          "type": "chart text",
+          "size": 8.020833333333332
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "view": "settings",
+      "issues": [
+        {
+          "type": "target",
+          "element": "Nutrition & weight goals",
+          "width": 1116,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "goalProtein",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalCalories",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMin",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMax",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMilestone",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalWalk",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceLow",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalMaintenanceHigh",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "goalNet",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "Undated profile references",
+          "width": 1116,
+          "height": 36
+        },
+        {
+          "type": "target",
+          "element": "profileHeight",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileStart",
+          "width": 550.5,
+          "height": 41
+        },
+        {
+          "type": "target",
+          "element": "profileRecent",
+          "width": 550.5,
+          "height": 41
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
