@@ -1,5 +1,6 @@
 /* End-to-end UI checks against a disposable PostgreSQL database, with mocked auth/transport. */
 const {chromium}=require('playwright'),{PGlite}=require('@electric-sql/pglite'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
+const release=require('../shell-release.json'),cacheName='financeflow-shell-'+release.version,appAsset=release.assets.find(a=>a.url.startsWith('./shell/app.')).url;
 const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222';
 (async()=>{
  const db=new PGlite();let browser,server;
@@ -86,14 +87,14 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  await page.waitForFunction(()=>!document.querySelector('[data-action=refresh]').disabled);await page.evaluate(()=>window.testFail=true);await page.click('[data-action=refresh]:visible');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('offline'));await page.evaluate(()=>window.testFail=false);await page.click('[data-action=refresh]:visible');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('refreshed'));
  await nav('overview');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.evaluate(()=>{scrollTo(0,0);document.querySelector('#toast').style.display='none'});await page.screenshot({path:path.join(root,'test-results/mobile.png'),fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(root,'test-results/desktop.png'),fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
- await page.evaluate(()=>navigator.serviceWorker.ready);assert.equal(await page.evaluate(async()=>Boolean(await (await caches.open('financeflow-shell-v2.1.0')).match('./js/app.js'))),true);
+ await page.evaluate(()=>navigator.serviceWorker.ready);assert.equal(await page.evaluate(async({cacheName,appAsset})=>Boolean(await (await caches.open(cacheName)).match(appAsset)),{cacheName,appAsset}),true);
  await page.click('#signOutBtn');await page.waitForFunction(()=>!document.querySelector('#authOverlay').classList.contains('hidden'));assert.doesNotMatch(await page.textContent('#overviewView'),/75.5/);
  await page.fill('#loginEmail','second@example.com');await page.fill('#loginPassword','test');await page.click('#loginBtn');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));await nav('nutrition');assert.doesNotMatch(await page.textContent('#nutritionView'),/Example estimate/);
  // Cross-tab SIGNED_IN must reset B before loading A, and restore A's own data.
  await page.evaluate(uid=>{window.testUid=uid;authListeners.forEach(cb=>cb('SIGNED_IN',{user:{id:uid,email:'first@example.com'}}))},A);
  await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));await nav('finance');assert.match(await page.textContent('#transactions'),/V2 groceries/);
  await nav('settings');assert.match(await page.textContent('#historyFileStatus'),/No private input/);
- const cacheURLs=await page.evaluate(async()=>{const cache=await caches.open('financeflow-shell-v2.1.0');return (await cache.keys()).map(r=>new URL(r.url).pathname)});assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')||url.includes('supabase')),false);
+ const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')||url.includes('supabase')),false);
  assert.deepEqual(errors,[]);console.log('Browser integration passed: import preview/idempotency, nullable meals/edit/delete/undo, catalog/favorites, atomic recipes, weights, finance/shift saves, statistics, complete backup, offline errors, account isolation, mobile/desktop layout and PWA cache.');
  }finally{if(browser)await browser.close();if(server)server.close();await db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

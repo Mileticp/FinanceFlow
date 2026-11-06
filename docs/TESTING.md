@@ -1,6 +1,6 @@
 # Verification
 
-Install pinned development tools with `npm ci`. No frontend build step is required.
+Install pinned development tools with `npm ci`. Committed shell assets are ready to serve; run `npm run build:shell` after changing shell sources.
 
 - `npm test`: calculation/import tests and disposable PostgreSQL (PGlite), without a production connection.
 - `npm run test:browser`: Chromium/Playwright and the real application, with mocked authentication/transport backed by disposable PostgreSQL and RLS. Set CHROMIUM_PATH if Chromium is not at /usr/bin/chromium. Permit the localhost server/browser in restricted environments.
@@ -21,7 +21,7 @@ Browser checks cover local-file preview without writes, repeated import, nullabl
 6. Verify known compatible prices permit cost metrics, while considered/unverified products remain unavailable for factual cost comparisons. Purchases must not be inferred from recommendations.
 7. Check 7/30/90-day/custom statistics, gaps for missing intake, partial-day averages, actual-only weight points and no curve from undated values.
 8. Exercise existing transactions, budgets, savings goal, pay settings, shift duplicate-date warning, deletion and explicit finance backup/import. Export all JSON and CSV; verify legacy rows and provenance. Allow multiple downloads for per-table CSV if prompted.
-9. On Android, open online twice/reload for the new service worker, then verify install/navigation and cache financeflow-shell-v2.0.1. The cache must contain no chosen historical file, private cloud records or auth traffic. Cached shell access does not imply offline cloud write support. Reconnect and refresh before retrying ambiguous saves.
+9. On Android, open online twice/reload for the new service worker, then verify install/navigation and the cache named `financeflow-shell-` plus the version in `shell-release.json`. The cache must contain no chosen historical file, private cloud records or auth traffic. Cached shell access does not imply offline cloud write support. Reconnect and refresh before retrying ambiguous saves.
 10. Check keyboard/dialog/Escape behavior, focus, reduced motion, mobile date fields, text zoom and screen-reader labels.
 11. Export production data, apply reviewed migration, deploy, sign in as the intended owner, preview/import the private input and download the runtime report. This PR does not merge or execute a production historical import automatically.
 
@@ -40,3 +40,7 @@ Before deployment, still complete real Supabase Auth/API checks with two test ac
 ## Visual redesign checks
 
 Run `npm run test:visual` for the synthetic, disposable-database visual suite. It captures every section at 320, 360, 390, 430, 768 and 1440px into ignored `test-results/visual/after/`, checks control/document fit, 44px targets and readable chart labels, then exercises navigation, import filters, modal keyboard behavior, reduced motion, contrast, empty/loading/error states, long labels, large numbers and simulated keyboard geometry. It never connects to a production API. See [DESIGN-REVIEW.md](DESIGN-REVIEW.md) for the audit, design tokens, committed before/after screenshots and real-device limitations. The redesigned shell cache is `financeflow-shell-v2.1.0`.
+
+## Installed-PWA upgrades
+
+Run `npm run test:pwa` for the real service-worker upgrade regression at `/FinanceFlow/`, including actual legacy workers, stale/failed asset responses, fresh/upgrade layouts at 320–430px, offline shell, cache cleanup, retained browser storage, future deployments and safe explicit reloads. See [PWA-UPDATES.md](PWA-UPDATES.md). Current cache identifiers and hashed asset URLs come from `shell-release.json`; do not hard-code old cache names in new tests. Run `npm run build:shell` after shell edits; `npm test` rejects stale generated output.

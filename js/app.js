@@ -319,6 +319,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  function reset(){generation++;uid=null;store={};legacy=[];weights=[];busy=false;loaded=false;schemaReady=false;undo=null;previewRows=null;previewFilter='all';importReport=null;dataset=null;editing=null;recipeDraft=[];if($('moreDialog')?.open)$('moreDialog').close();if(dialog.open)dialog.close();dialog.replaceChildren();status('Sign in to load your private dashboard.');render();}
  function connect(account){reset();uid=account.id;const token=generation;busy=true;status('Loading your dashboard…');reload(uid,token).then(()=>{if(token===generation&&schemaReady)status('Cloud connected · Europe/Ljubljana');}).catch(error=>{if(token===generation)status('Dashboard load failed: '+error.message,true);}).finally(()=>{if(token===generation){busy=false;paintBusy();}});}
  cloud?.auth.onAuthStateChange?.((event,session)=>{if(event==='SIGNED_OUT'||(session?.user&&uid&&session.user.id!==uid)){onAuthSignOut?.();reset();}});
- const requested=location.hash.slice(1);reset();navigate(requested||'overview');
+ // Finance/work renderers finish initializing later in the host's inline script.
+ const requested=location.hash.slice(1);reset();queueMicrotask(()=>navigate(requested||'overview'));
  return {connect,reset};
 };

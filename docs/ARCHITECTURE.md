@@ -45,7 +45,7 @@ Walking goals do not create activity. Maintenance is unmeasured; the app does no
 
 ## PWA and backup
 
-financeflow-shell-v2.0.1 caches only same-origin app shell assets. No private import file, cloud records, auth or Supabase API requests are cached. Older FinanceFlow shell caches are removed on activation. Installed Android clients receive updated local assets on the next online load/reload. The existing Supabase CDN library and cloud sign-in require connectivity; offline writes are not queued. Failed refreshes retain loaded records.
+The current generated `financeflow-shell-<release>` cache holds only the hash-verified compatible public shell. HTML uses content-hashed CSS/JS with integrity checks; see [PWA-UPDATES.md](PWA-UPDATES.md) for generation, atomic installation and Android upgrade behavior. No private import file, cloud records, auth or Supabase API requests are cached. Older FinanceFlow shell caches are removed on activation. Installed Android clients receive updated local assets on the next online load/reload. The existing Supabase CDN library and cloud sign-in require connectivity; offline writes are not queued. Failed refreshes retain loaded records.
 
 Settings exports all existing/new cloud tables as JSON or individual CSV files, including notes/evidence and legacy finance payload. CSV guards formula-like strings. General nutrition backup restore is not automatic: use the reviewed historical importer or a reviewed restoration procedure. Existing explicit finance import stays separate from nutrition and weight.
 
