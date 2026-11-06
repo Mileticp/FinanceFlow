@@ -18,6 +18,12 @@ function generate(root){
   return tag.replace(/\s(?:src|href|integrity|crossorigin)="[^"]*"/g,'').replace(/>$/,` ${attr}="./${asset.file}" integrity="${asset.integrity}" crossorigin="anonymous">`);
  });
  if(found.size!==SOURCES.length)throw Error('Every shell script/style must have a data-shell-source marker.');
+ // Generate a restrictive script policy using the actual inline application script hash.
+ // GitHub Pages supports CSP via a meta element, not custom response headers.
+ const inlineScripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)].map(m=>m[1]).filter(Boolean);
+ const scriptHashes=inlineScripts.map(code=>"'sha256-"+crypto.createHash('sha256').update(code).digest('base64')+"'");
+ const policy=["default-src 'self'","base-uri 'self'","object-src 'none'","form-action 'self'","frame-ancestors 'none'","script-src 'self' https://cdn.jsdelivr.net "+scriptHashes.join(' '),"connect-src 'self' https://*.supabase.co wss://*.supabase.co","img-src 'self' data: blob:","style-src 'self' 'unsafe-inline'","font-src 'self' data:","worker-src 'self'","manifest-src 'self'"].filter(x=>!x.startsWith('frame-ancestors')).join('; ');
+ html=html.replace(/<meta name="financeflow-csp"[^>]*>/g,'').replace('<head>','<head>\n<meta name="financeflow-csp" http-equiv="Content-Security-Policy" content="'+policy+'">');
  const neutralHTML=html.replace(/(<meta name="financeflow-release" content=")[^"]*(">)/,'$1__RELEASE__$2');
  if(neutralHTML===html&&!html.includes('content="__RELEASE__"'))throw Error('Missing release meta tag.');
  const neutralWorker=worker.replace(/\/\/ BEGIN GENERATED SHELL[\s\S]*?\/\/ END GENERATED SHELL/,'// GENERATED SHELL');
