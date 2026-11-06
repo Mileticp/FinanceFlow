@@ -29,7 +29,7 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
  const context=await browser.newContext({...mobile,viewport:{width:320,height:844}}),page=await context.newPage();
  watch(page);
- await context.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:mock}));
+ await context.addInitScript({content:mock+"\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});
  const base=`http://127.0.0.1:${server.address().port}/FinanceFlow/`;
  await page.goto(base);await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));await page.evaluate(()=>navigator.serviceWorker.ready);await page.reload();
  await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));
