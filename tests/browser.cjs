@@ -63,6 +63,7 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  assert.ok((await page.textContent('#nutritionView')).includes(injection),'user notes must remain text');
  assert.equal(await page.locator('#ff-xss-probe').count(),0,'HTML payload must never be parsed into an element');
  assert.equal(await page.evaluate(()=>window.__ff_xss),undefined,'malicious event handler must never run');
+ await page.click('[data-action="nutrition-sub"][data-sub="diary"]');
  await nav('settings');await page.setInputFiles('#historyFile',path.join(root,'tests/fixtures/synthetic-history.json'));await page.waitForFunction(()=>document.querySelector('#historyFileStatus').textContent.includes('synthetic'));await page.click('[data-action=preview-import]:visible');await page.waitForFunction(()=>document.querySelector('#importPreview').textContent.includes('to create'));
  const count=await db.query('select count(*) from nutrition_entries');assert.equal(count.rows[0].count,0);
  await page.click('[data-action=apply-import]:visible');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Import finished'));
