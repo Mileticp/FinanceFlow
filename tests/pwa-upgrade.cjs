@@ -63,7 +63,23 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  assert.equal(await page.evaluate(()=>localStorage.getItem('ff-upgrade-sentinel')),'synthetic saved state');
  assert.equal(await page.evaluate(()=>new Promise(resolve=>{const r=indexedDB.open('ff-upgrade-test');r.onsuccess=()=>{const db=r.result,q=db.transaction('records').objectStore('records').get('saved');q.onsuccess=()=>{resolve(q.result);db.close()}}})),'synthetic record');
  assert.equal(await page.evaluate(()=>caches.has('unrelated-test-cache')),true);
- await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:15000}).catch(async error=>{console.error('Offline diagnostic',await page.evaluate(()=>({state:document.readyState,release:document.querySelector('meta[name=financeflow-release]')?.content,status:document.querySelector('#appStatus')?.textContent,controller:!!navigator.serviceWorker.controller,resources:performance.getEntriesByType('resource').map(r=>r.name)})));throw error;});assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
+ // Capture controller/cache readiness before offline mode; never conceal navigation failures.
+ const offlineReady=await page.evaluate(async CACHE=>({controller:!!navigator.serviceWorker.controller,controllerState:navigator.serviceWorker.controller?.state,activeState:(await navigator.serviceWorker.ready).active?.state,cachePresent:await caches.has(CACHE),cachedIndex:!!(await (await caches.open(CACHE)).match(new URL('./index.html',location.href)))}),CACHE);
+ assert.equal(offlineReady.controller,true,'Offline test requires an active controlling worker');
+ assert.equal(offlineReady.cachePresent,true,'Offline test requires the verified release cache');
+ assert.equal(offlineReady.cachedIndex,true,'Offline test requires cached navigation HTML');
+ const offlineFailures=[];
+ const onFailed=request=>{if(request.isNavigationRequest())offlineFailures.push({url:request.url(),failure:request.failure()?.errorText});};
+ page.on('requestfailed',onFailed);
+ await context.setOffline(true);
+ try {
+  await page.reload({waitUntil:'domcontentloaded',timeout:15000});
+ } catch(error) {
+  const snapshot=await page.evaluate(()=>({state:document.readyState,release:document.querySelector('meta[name=financeflow-release]')?.content,status:document.querySelector('#appStatus')?.textContent,controller:!!navigator.serviceWorker.controller,resources:performance.getEntriesByType('resource').map(r=>r.name)})).catch(e=>({evaluationError:e.message}));
+  console.error('Offline reload failed',JSON.stringify({before:offlineReady,failedNavigations:offlineFailures,after:snapshot,error:error.message}));
+  throw error;
+ } finally {page.off('requestfailed',onFailed);}
+assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
  const keys=await page.evaluate(async CACHE=>(await (await caches.open(CACHE)).keys()).map(r=>new URL(r.url).pathname),CACHE);
  assert.ok(keys.every(key=>release.assets.some(asset=>'/FinanceFlow/'+asset.url.slice(2)===key)));assert.ok(!keys.some(key=>/mock-api|private|history.json/.test(key)));assert.ok(keys.some(key=>key.includes('/shell/supabase.min.')));
  // Same human version, changed content: generated hashes must invalidate a future deployment.
