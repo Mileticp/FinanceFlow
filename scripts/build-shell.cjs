@@ -35,7 +35,7 @@ function generate(root){
   "worker-src 'self'",
   "manifest-src 'self'"
  ].join('; ');
- html=html.replace(/<meta name="financeflow-csp"[^>]*>/g,'')
+ html=html.replace(/<meta name="financeflow-csp"[^>]*>\n?/g,'')
    .replace('<head>','<head>\n<meta name="financeflow-csp" http-equiv="Content-Security-Policy" content="'+policy+'">');
  const neutralHTML=html.replace(/(<meta name="financeflow-release" content=")[^"]*(">)/,'$1__RELEASE__$2');
  if(neutralHTML===html&&!html.includes('content="__RELEASE__"'))throw Error('Missing release meta tag.');
