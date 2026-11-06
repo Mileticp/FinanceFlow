@@ -1,13 +1,17 @@
 {
-  "version": "v2.1.1-b6effd1bdde4c897",
+  "version": "v2.1.1-0b88a669d7671d51",
   "assets": [
     {
       "url": "./index.html",
-      "sha256": "742dfd78f6a886909794a3ea077dada67c163b7ae5e2947029e22d6f70144e0a"
+      "sha256": "bfef037a00a442eed4c144f13a1cde5c972a3e15b3cc25f2524313dc22315a1c"
     },
     {
-      "url": "./shell/v2.464a0276963951e0.css",
-      "sha256": "464a0276963951e09bf68a24eff937b8a9de626ee6eda7017b113d9d17983f50"
+      "url": "./shell/shift-time.43bb250123b08678.js",
+      "sha256": "43bb250123b08678a8a097e2bb1e3c0b0d8e2c8f9a96fe0a50b5ad2714012816"
+    },
+    {
+      "url": "./shell/v2.b5e8789862ba63e9.css",
+      "sha256": "b5e8789862ba63e9a24b00117522fcbb66149a51e987005cb3bd1b312afd3224"
     },
     {
       "url": "./shell/core.25af5f502ed11d50.js",

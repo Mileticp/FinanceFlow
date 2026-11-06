@@ -5,7 +5,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
 function harness(){
  const calls=[],pending=[],nodes={};
  const cloud={auth:{signOut:async()=>{calls.push({signOut:true});return {}}},from:table=>{const query={table,filters:[]};const b={select:()=>b,eq:(key,value)=>{query.filters.push([key,value]);return b},order:()=>b,maybeSingle:()=>b,upsert:row=>{query.row=row;return b},insert:row=>{query.row=row;return b},then:(resolve,reject)=>{calls.push(query);const task=deferred();pending.push({query,...task});return task.promise.then(resolve,reject)}};return b}};
- const context=vm.createContext({cloud,console,JSON,Date,Error,Promise,setTimeout,initial:()=>({transactions:[],shifts:[],budgets:{},paySettings:{}}),normalize:v=>v,render:()=>{},renderWork:()=>{},status:()=>{},cloudError:()=>{},confirm:()=>true,v2:{reset:()=>{},connect:()=>{}},$:id=>nodes[id]??=( {classList:{add(){},remove(){}},textContent:''})});
+ const context=vm.createContext({resetShiftEditor:()=>{},FFShift:require('../js/shift-time.js'),cloud,console,JSON,Date,Error,Promise,setTimeout,initial:()=>({transactions:[],shifts:[],budgets:{},paySettings:{}}),normalize:v=>v,render:()=>{},renderWork:()=>{},status:()=>{},cloudError:()=>{},confirm:()=>true,v2:{reset:()=>{},connect:()=>{}},$:id=>nodes[id]??=( {classList:{add(){},remove(){}},textContent:''})});
  const names=['save','loadCloud','shiftFromRow','refreshShifts','addShiftToCloud','signedIn'];
  const source=html.split('\n').filter(line=>names.some(name=>line.startsWith('function '+name+'(')||line.startsWith('async function '+name+'('))).join('\n');
  vm.runInContext("let currentUser=null,ready=false,writeQueue=Promise.resolve(),dirty=false,legacyShifts=[],authGeneration=0,data=initial();\n"+source,context);
