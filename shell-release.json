@@ -1,9 +1,13 @@
 {
-  "version": "v2.1.1-0b88a669d7671d51",
+  "version": "v2.1.1-138c98020d8113fc",
   "assets": [
     {
       "url": "./index.html",
-      "sha256": "bfef037a00a442eed4c144f13a1cde5c972a3e15b3cc25f2524313dc22315a1c"
+      "sha256": "5a3237e00a10667f3c3cc03069de2f35380a5886a74b8f4e913324eba2198fa3"
+    },
+    {
+      "url": "./shell/supabase.min.bee24fc29228ed5a.js",
+      "sha256": "bee24fc29228ed5a370f76a2ba1ca3c399549edad2fef23453c80148856a49af"
     },
     {
       "url": "./shell/shift-time.43bb250123b08678.js",
