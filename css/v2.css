@@ -352,3 +352,7 @@ form { scroll-margin-top: 20px; }
 
 .brand-mark circle { fill: var(--positive); stroke: none; }
 @media (max-width: 767px) { #financeView > .grid:has([data-long-number]) { grid-template-columns: minmax(0, 1fr); } }
+
+.shift-duration{font-size:28px;font-variant-numeric:tabular-nums;color:var(--text)}.shift-actions{display:flex;gap:8px;flex-wrap:wrap}.shift-actions .btn{font-size:12px}.worktable td{vertical-align:top}.worktable{table-layout:fixed}.worktable th:last-child{width:28%}@media(max-width:767px){.worktable{table-layout:auto}.worktable td:last-child{justify-self:stretch}.shift-actions .btn{flex:1 1 110px}}
+
+#shiftRows td[data-label="Duration"]{font-size:20px;font-variant-numeric:tabular-nums}#shiftRows td:first-child p{font-size:14px;font-weight:500}
