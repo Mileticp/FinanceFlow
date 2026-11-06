@@ -63,12 +63,28 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  assert.equal(await page.evaluate(()=>localStorage.getItem('ff-upgrade-sentinel')),'synthetic saved state');
  assert.equal(await page.evaluate(()=>new Promise(resolve=>{const r=indexedDB.open('ff-upgrade-test');r.onsuccess=()=>{const db=r.result,q=db.transaction('records').objectStore('records').get('saved');q.onsuccess=()=>{resolve(q.result);db.close()}}})),'synthetic record');
  assert.equal(await page.evaluate(()=>caches.has('unrelated-test-cache')),true);
- await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:15000});assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
+ // Capture controller/cache readiness before offline mode; never conceal navigation failures.
+ const offlineReady=await page.evaluate(async CACHE=>({controller:!!navigator.serviceWorker.controller,controllerState:navigator.serviceWorker.controller?.state,activeState:(await navigator.serviceWorker.ready).active?.state,cachePresent:await caches.has(CACHE),cachedIndex:!!(await (await caches.open(CACHE)).match(new URL('./index.html',location.href)))}),CACHE);
+ assert.equal(offlineReady.controller,true,'Offline test requires an active controlling worker');
+ assert.equal(offlineReady.cachePresent,true,'Offline test requires the verified release cache');
+ assert.equal(offlineReady.cachedIndex,true,'Offline test requires cached navigation HTML');
+ const offlineFailures=[];
+ const onFailed=request=>{if(request.isNavigationRequest())offlineFailures.push({url:request.url(),failure:request.failure()?.errorText});};
+ page.on('requestfailed',onFailed);
+ await context.setOffline(true);
+ try {
+  await page.reload({waitUntil:'domcontentloaded',timeout:15000});
+ } catch(error) {
+  const snapshot=await page.evaluate(()=>({state:document.readyState,release:document.querySelector('meta[name=financeflow-release]')?.content,status:document.querySelector('#appStatus')?.textContent,controller:!!navigator.serviceWorker.controller,resources:performance.getEntriesByType('resource').map(r=>r.name)})).catch(e=>({evaluationError:e.message}));
+  console.error('Offline reload failed',JSON.stringify({before:offlineReady,failedNavigations:offlineFailures,after:snapshot,error:error.message}));
+  throw error;
+ } finally {page.off('requestfailed',onFailed);}
+assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
  const keys=await page.evaluate(async CACHE=>(await (await caches.open(CACHE)).keys()).map(r=>new URL(r.url).pathname),CACHE);
  assert.ok(keys.every(key=>release.assets.some(asset=>'/FinanceFlow/'+asset.url.slice(2)===key)));assert.ok(!keys.some(key=>/mock-api|private|history.json/.test(key)));assert.ok(keys.some(key=>key.includes('/shell/supabase.min.')));
  // Same human version, changed content: generated hashes must invalidate a future deployment.
  futureRoot=fs.mkdtempSync(path.join(os.tmpdir(),'financeflow-next-'));
- for(const file of ['index.html','sw.js','package.json','css/v2.css','js/shift-time.js','js/core.js','js/importer.js','js/app.js','js/sw-client.js','vendor/supabase.min.js','food.html','manifest.webmanifest','icon-192.png','icon-512.png']){const target=path.join(futureRoot,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,file),target);}
+ for(const file of ['index.html','sw.js','package.json','css/v2.css','js/motion.js','js/shift-time.js','js/core.js','js/importer.js','js/app.js','js/sw-client.js','vendor/supabase.min.js','food.html','manifest.webmanifest','icon-192.png','icon-512.png']){const target=path.join(futureRoot,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,file),target);}
  fs.appendFileSync(path.join(futureRoot,'css/v2.css'),'\n/* Synthetic next deployment. */\n');
  const outputs=generate(futureRoot),nextRelease=JSON.parse(outputs['shell-release.json']);
  future={outputs,release:nextRelease,css:nextRelease.assets.find(a=>a.url.endsWith('.css')).url.slice(2)};
@@ -104,7 +120,7 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  watch(barePage);await bare.addInitScript({content:mock+"\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});await bare.route('**/shell/*.css',route=>route.abort());await barePage.goto(base);
  const safe=await barePage.locator('.top svg.icon').first().evaluate(el=>({width:el.getBoundingClientRect().width,fill:getComputedStyle(el).fill}));assert.equal(safe.width,21);assert.equal(safe.fill,'none');assert.equal(await barePage.locator('.icon-definitions').evaluate(el=>el.getBoundingClientRect().width),0);await bare.close();
  assert.deepEqual(pageErrors,[],'No uncaught application errors on upgrade/reload');
- assert.equal(requests.filter(r=>r.phase==='fixed'&&['css/v2.css','js/app.js','js/shift-time.js','js/core.js','js/importer.js'].includes(r.file)).length,0,'New HTML must never request ambiguous old asset URLs');
+ assert.equal(requests.filter(r=>r.phase==='fixed'&&['css/v2.css','js/app.js','js/motion.js','js/shift-time.js','js/core.js','js/importer.js'].includes(r.file)).length,0,'New HTML must never request ambiguous old asset URLs');
  console.log('PWA upgrade passed: real old-worker reproduction, fresh/upgraded layouts (320–430px), offline shell, preserved storage, integrity-rejected deployment, automatic next-release invalidation, and manual update without losing edits.');
  }finally{if(browser)await browser.close();if(server)server.close();if(futureRoot)fs.rmSync(futureRoot,{recursive:true,force:true});}
 })().catch(error=>{console.error(error);process.exitCode=1});

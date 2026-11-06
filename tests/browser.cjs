@@ -114,6 +114,11 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  await nav('settings');assert.match(await page.textContent('#historyFileStatus'),/No private input/);
  const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')),false,JSON.stringify(cacheURLs));
  assert.equal(cacheURLs.some(url=>url.includes('/shell/supabase.min.')),true,'Pinned client must be cached for offline use');
+ await page.emulateMedia({reducedMotion:'no-preference'});await nav('finance');await page.evaluate(()=>{window.card= document.querySelector('#financeView .card');window.beforeCount=card.getAnimations().length;document.querySelector('#balance').textContent='€123.45';});
+ assert.equal(await page.textContent('#balance'),'€123.45');await page.waitForFunction(()=>!document.querySelector('#balance').classList.contains('motion-number'));assert.equal(await page.textContent('#balance'),'€123.45');
+ await page.emulateMedia({reducedMotion:'reduce'});await nav('work');assert.equal(await page.locator('#workView').evaluate(el=>el.getAnimations({subtree:true}).length),0);
+ await page.evaluate(()=>document.querySelector('#workHours').textContent='160:30');assert.equal(await page.textContent('#workHours'),'160:30');assert.equal(await page.locator('#workHours').evaluate(el=>el.classList.contains('motion-number')),false);
+ await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:390,height:844});await page.click('#moreNav');await page.keyboard.press('Escape');assert.equal(await page.locator('#moreDialog').evaluate(el=>el.open),false);
  assert.deepEqual(errors,[]);console.log('Browser integration passed: import preview/idempotency, nullable meals/edit/delete/undo, catalog/favorites, atomic recipes, weights, finance/shift saves, statistics, complete backup, offline errors, account isolation, mobile/desktop layout and PWA cache.');
  }finally{if(browser)await browser.close();if(server)server.close();await db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

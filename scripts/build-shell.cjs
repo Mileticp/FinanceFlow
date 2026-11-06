@@ -1,6 +1,6 @@
 /* No build dependencies: commit immutable public assets for GitHub Pages. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const SOURCES=['vendor/supabase.min.js','js/shift-time.js','css/v2.css','js/core.js','js/importer.js','js/app.js','js/sw-client.js'];
+const SOURCES=['js/motion.js','vendor/supabase.min.js','js/shift-time.js','css/v2.css','js/core.js','js/importer.js','js/app.js','js/sw-client.js'];
 const STATIC=['food.html','manifest.webmanifest','icon-192.png','icon-512.png'];
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function generate(root){
