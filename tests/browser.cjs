@@ -15,6 +15,8 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  const legacyTables=['food_logs','weight_logs','financeflow_data','work_shifts','transactions','budgets','settings'];
  for(const t of legacyTables)await db.exec(`alter table ${t} enable row level security;create policy owner on ${t} for all to authenticated using((select auth.uid())=user_id) with check((select auth.uid())=user_id);grant select,insert,update,delete on ${t} to authenticated;`);
  await db.exec(fs.readFileSync(path.join(root,'supabase/migrations',fs.readdirSync(path.join(root,'supabase/migrations'))[0]),'utf8'));
+ const injection='<img id="ff-xss-probe" src="x" onerror="window.__ff_xss=1">';
+ await db.query('insert into nutrition_history(user_id,kind,notes) values($1,$2,$3)',[A,'Synthetic XSS regression',injection]);
  await db.query('insert into financeflow_data(user_id,payload) values($1,$2)',[A,JSON.stringify({transactions:[{id:'existing',date:'2026-11-05',type:'income',amount:100,category:'Salary',description:'Existing income'}],budgets:{'2026-11':500},goal:{name:'Trip',amount:1000},shifts:[],paySettings:{hourlyRate:8.98,kmRate:.1725},customSettings:{preserved:true}})]);
  await db.query("insert into work_shifts(user_id,date,hours,hourly_rate,kilometres,mileage_rate,notes) values($1,'2026-11-05',4,8.98,10,.1725,'Existing shift')",[A]);
  const tableNames=[...legacyTables,'nutrition_foods','nutrition_recipes','nutrition_ingredients','nutrition_entries','nutrition_days','nutrition_profiles','nutrition_goals','nutrition_history','nutrition_activity'];
@@ -57,6 +59,10 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  const base=`http://127.0.0.1:${server.address().port}`;await page.goto(base);await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));
  if(process.env.FF_VISUAL){await require('./visual.cjs')({page,db,api,base,root,A,errors});return;}
  assert.match(await page.textContent('#overviewView'),/€100.00/);assert.match(await page.textContent('#overviewView'),/No dated weigh-ins/);
+ await nav('nutrition');await page.click('[data-action="nutrition-sub"][data-sub="review"]');
+ assert.ok((await page.textContent('#nutritionView')).includes(injection),'user notes must remain text');
+ assert.equal(await page.locator('#ff-xss-probe').count(),0,'HTML payload must never be parsed into an element');
+ assert.equal(await page.evaluate(()=>window.__ff_xss),undefined,'malicious event handler must never run');
  await nav('settings');await page.setInputFiles('#historyFile',path.join(root,'tests/fixtures/synthetic-history.json'));await page.waitForFunction(()=>document.querySelector('#historyFileStatus').textContent.includes('synthetic'));await page.click('[data-action=preview-import]:visible');await page.waitForFunction(()=>document.querySelector('#importPreview').textContent.includes('to create'));
  const count=await db.query('select count(*) from nutrition_entries');assert.equal(count.rows[0].count,0);
  await page.click('[data-action=apply-import]:visible');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Import finished'));
