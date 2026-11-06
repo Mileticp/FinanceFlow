@@ -105,7 +105,8 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  await page.evaluate(uid=>{window.testUid=uid;authListeners.forEach(cb=>cb('SIGNED_IN',{user:{id:uid,email:'first@example.com'}}))},A);
  await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));await nav('finance');assert.match(await page.textContent('#transactions'),/V2 groceries/);
  await nav('settings');assert.match(await page.textContent('#historyFileStatus'),/No private input/);
- const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')||url.includes('supabase')),false);
+ const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')),false);
+ assert.equal(cacheURLs.some(url=>url.includes('/shell/supabase.min.')),true,'Pinned client must be cached for offline use');
  assert.deepEqual(errors,[]);console.log('Browser integration passed: import preview/idempotency, nullable meals/edit/delete/undo, catalog/favorites, atomic recipes, weights, finance/shift saves, statistics, complete backup, offline errors, account isolation, mobile/desktop layout and PWA cache.');
  }finally{if(browser)await browser.close();if(server)server.close();await db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
