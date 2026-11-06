@@ -63,7 +63,7 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  assert.equal(await page.evaluate(()=>localStorage.getItem('ff-upgrade-sentinel')),'synthetic saved state');
  assert.equal(await page.evaluate(()=>new Promise(resolve=>{const r=indexedDB.open('ff-upgrade-test');r.onsuccess=()=>{const db=r.result,q=db.transaction('records').objectStore('records').get('saved');q.onsuccess=()=>{resolve(q.result);db.close()}}})),'synthetic record');
  assert.equal(await page.evaluate(()=>caches.has('unrelated-test-cache')),true);
- await context.setOffline(true);await page.reload();assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
+ await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:15000});assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
  const keys=await page.evaluate(async CACHE=>(await (await caches.open(CACHE)).keys()).map(r=>new URL(r.url).pathname),CACHE);
  assert.ok(keys.every(key=>release.assets.some(asset=>'/FinanceFlow/'+asset.url.slice(2)===key)));assert.ok(!keys.some(key=>/mock-api|private|history.json/.test(key)));assert.ok(keys.some(key=>key.includes('/shell/supabase.min.')));
  // Same human version, changed content: generated hashes must invalidate a future deployment.
