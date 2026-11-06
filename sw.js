@@ -1,11 +1,15 @@
 /* Generated manifest below; run npm run build:shell after changing shell files. */
 // BEGIN GENERATED SHELL
 const RELEASE = {
-  "version": "v2.1.1-138c98020d8113fc",
+  "version": "v2.1.1-45016f0c6369a939",
   "assets": [
     {
       "url": "./index.html",
-      "sha256": "5a3237e00a10667f3c3cc03069de2f35380a5886a74b8f4e913324eba2198fa3"
+      "sha256": "44a4399dc5724b49f32d344cc9f51619dada3dcc0dcfbba19c78157aa95f0842"
+    },
+    {
+      "url": "./shell/motion.a515f46f31508709.js",
+      "sha256": "a515f46f31508709a2777f3908e0666e13c75c871cac37be2eef7d96da0fcc4c"
     },
     {
       "url": "./shell/supabase.min.bee24fc29228ed5a.js",
@@ -16,8 +20,8 @@ const RELEASE = {
       "sha256": "43bb250123b08678a8a097e2bb1e3c0b0d8e2c8f9a96fe0a50b5ad2714012816"
     },
     {
-      "url": "./shell/v2.b5e8789862ba63e9.css",
-      "sha256": "b5e8789862ba63e9a24b00117522fcbb66149a51e987005cb3bd1b312afd3224"
+      "url": "./shell/v2.01edf950e69d8ee5.css",
+      "sha256": "01edf950e69d8ee5ae2189f56649f73bd0c016b443060f1959d8433c61cdbff3"
     },
     {
       "url": "./shell/core.25af5f502ed11d50.js",
@@ -28,8 +32,8 @@ const RELEASE = {
       "sha256": "9901f89a8a67638791adb25676c5432b4c230fb796dbf9e90e000af2854341b3"
     },
     {
-      "url": "./shell/app.155aca25d45f90ef.js",
-      "sha256": "155aca25d45f90ef6f0e5595be5bfcea6a06feb47d505925d3ea09c5edc63e1d"
+      "url": "./shell/app.438ae57f08b9d134.js",
+      "sha256": "438ae57f08b9d13490d96fd6073669dbe3673e4c0db05dd484a738748617608c"
     },
     {
       "url": "./shell/sw-client.2da3544ffdb2a55a.js",

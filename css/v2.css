@@ -356,3 +356,27 @@ form { scroll-margin-top: 20px; }
 .shift-duration{font-size:28px;font-variant-numeric:tabular-nums;color:var(--text)}.shift-actions{display:flex;gap:8px;flex-wrap:wrap}.shift-actions .btn{font-size:12px}.worktable td{vertical-align:top}.worktable{table-layout:fixed}.worktable th:last-child{width:28%}@media(max-width:767px){.worktable{table-layout:auto}.worktable td:last-child{justify-self:stretch}.shift-actions .btn{flex:1 1 110px}}
 
 #shiftRows td[data-label="Duration"]{font-size:20px;font-variant-numeric:tabular-nums}#shiftRows td:first-child p{font-size:14px;font-weight:500}
+
+/* Motion tokens: bounded distance, no layout animation or input delays. */
+:root{--motion-fast:120ms;--motion-normal:220ms;--motion-slow:280ms;--motion-ease:cubic-bezier(.22,1,.36,1);--motion-distance:8px}
+.btn,.delete{transition:background-color var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast),transform var(--motion-fast) var(--motion-ease)}
+.btn:active:not(:disabled),.delete:active:not(:disabled){transform:scale(.975)}
+.tabs .btn,.subnav .btn{transition:background-color var(--motion-normal),color var(--motion-normal),transform var(--motion-fast)}
+input,select,textarea{transition:border-color var(--motion-fast),box-shadow var(--motion-fast)}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);transition:filter var(--motion-fast)}
+@media(hover:hover) and (pointer:fine){.card{transition:border-color var(--motion-normal)}.card:hover{border-color:#41404c}}
+.progress>div{transform-origin:left;transition:none}
+dialog{opacity:0;transform:translateY(6px) scale(.985);transition:opacity var(--motion-normal),transform var(--motion-normal) var(--motion-ease),display var(--motion-normal) allow-discrete,overlay var(--motion-normal) allow-discrete}
+dialog[open]{opacity:1;transform:none}
+dialog::backdrop{transition:opacity var(--motion-normal);opacity:0}dialog[open]::backdrop{opacity:1}
+@starting-style{dialog[open]{opacity:0;transform:translateY(6px) scale(.985)}dialog[open]::backdrop{opacity:0}}
+.toast{opacity:1;transform:none;transition:opacity var(--motion-normal),transform var(--motion-normal) var(--motion-ease),display var(--motion-normal) allow-discrete}
+.toast[style*="display: none"]{opacity:0;transform:translateY(6px)}
+@starting-style{.toast{opacity:0;transform:translateY(6px)}}
+.v2-status.error,.auth-error:not(:empty){animation:feedback-in var(--motion-fast) ease-out}
+@keyframes feedback-in{from{opacity:.7}to{opacity:1}}
+.motion-number{position:relative;color:transparent!important}.motion-number::after{content:attr(data-motion-number) / "";position:absolute;inset:0;color:var(--number-color);pointer-events:none}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}dialog{transform:none}.motion-number{color:var(--number-color)!important}.motion-number::after{display:none}}
+
+dialog:not([open]),dialog:not([open])::backdrop{pointer-events:none}
+@media(prefers-reduced-motion:reduce){.btn:active,.delete:active{transform:none!important}}

@@ -37,14 +37,14 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
  function paintBusy(){document.querySelectorAll('.v2-scope button,.v2-scope input,.v2-scope select,.v2-scope textarea').forEach(el=>{el.disabled=busy||(el.dataset.action==='apply-import'&&!previewRows);});}
  function navigate(name,focus=false){
   if(!['overview','finance','work','nutrition','weight','statistics','settings'].includes(name))name='overview';
-  const more=$('moreDialog');if(more?.open)more.close();
+  window.FFMotion?.leave(name);const more=$('moreDialog');if(more?.open)more.close();
   statusNode.classList.toggle('context-hidden',Boolean(statusNode.dataset.statusView&&statusNode.dataset.statusView!==name&&!statusNode.classList.contains('error')));
   view=name;for(const n of ['overview','finance','work','nutrition','weight','statistics','settings']){const node=$(n+'View');node.classList.toggle('hidden',n!==name);node.classList.toggle('active-view',n===name);}
   document.querySelectorAll('[data-view]').forEach(b=>{b.className='btn '+(b.dataset.view===name?'active':'secondary');if(b.dataset.view===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   document.querySelectorAll('[data-destination]').forEach(b=>{if(b.dataset.destination===name)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   $('moreNav')?.classList.toggle('active',['work','weight','settings'].includes(name));
   if(name==='finance'||name==='work')renderFinance();else render();
-  fitCharts();history.replaceState(null,'','#'+name);if(focus)$(name+'View').querySelector('h1')?.focus({preventScroll:true});
+  window.FFMotion?.enter(name);fitCharts();history.replaceState(null,'','#'+name);if(focus)$(name+'View').querySelector('h1')?.focus({preventScroll:true});
  }
  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>navigate(b.dataset.view,true));
  document.addEventListener('keydown',event=>{
@@ -316,7 +316,7 @@ window.initFinanceFlowV2 = ({cloud,getUser,getFinance,isReady,renderFinance,onAu
   if(event.target.id==='foodSearch'){const cursor=event.target.selectionStart;search=event.target.value;renderNutrition();$('foodSearch').focus();$('foodSearch').setSelectionRange(cursor,cursor);}
   if(event.target.id==='entrySearch'){const q=event.target.value.toLowerCase();$('entryFood').replaceChildren(...[['','Manual entry'],...foods().filter(f=>(f.name+' '+(f.brand||'')).toLowerCase().includes(q)).map(f=>[f.id,`${f.name} / ${f.basis_quantity} ${f.basis_unit}`])].map(([value,label])=>new Option(label,value)));}
  });
- function reset(){generation++;uid=null;store={};legacy=[];weights=[];busy=false;loaded=false;schemaReady=false;undo=null;previewRows=null;previewFilter='all';importReport=null;dataset=null;editing=null;recipeDraft=[];if($('moreDialog')?.open)$('moreDialog').close();if(dialog.open)dialog.close();dialog.replaceChildren();status('Sign in to load your private dashboard.');render();}
+ function reset(){window.FFMotion?.reset();generation++;uid=null;store={};legacy=[];weights=[];busy=false;loaded=false;schemaReady=false;undo=null;previewRows=null;previewFilter='all';importReport=null;dataset=null;editing=null;recipeDraft=[];if($('moreDialog')?.open)$('moreDialog').close();if(dialog.open)dialog.close();dialog.replaceChildren();status('Sign in to load your private dashboard.');render();}
  function connect(account){reset();uid=account.id;const token=generation;busy=true;status('Loading your dashboard…');reload(uid,token).then(()=>{if(token===generation&&schemaReady)status('Cloud connected · Europe/Ljubljana');}).catch(error=>{if(token===generation)status('Dashboard load failed: '+error.message,true);}).finally(()=>{if(token===generation){busy=false;paintBusy();}});}
  cloud?.auth.onAuthStateChange?.((event,session)=>{if(event==='SIGNED_OUT'||(session?.user&&uid&&session.user.id!==uid)){onAuthSignOut?.();reset();}});
  // Finance/work renderers finish initializing later in the host's inline script.
