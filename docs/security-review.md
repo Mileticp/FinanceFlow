@@ -30,3 +30,10 @@ Do not perform a destructive restore in production. Backups are sensitive person
 - Reviewed the eight `innerHTML` assignment locations in `js/app.js` (lines 89, 99, 114, 138, 148, 166, 185, 222 at the audited revision). The file defines an HTML-escaping helper `E`, but a full taint/attribute-context analysis and runtime XSS testing remain outstanding. These locations are not proof of a vulnerability.
 - Confirmed `index.html` loads the floating jsDelivr `@supabase/supabase-js@2` bundle without SRI, and contains a large inline script. Do not deploy a strict CSP or modify the bundle until compatibility and atomic shell-update tests pass.
 - The production sign-out path clears visible state before calling Supabase signOut, but token revocation and cross-account isolation were not tested end-to-end.
+
+## Follow-up verification (2026-11-06)
+- The security workflow now fetches full Git history and runs Gitleaks alongside the working-tree heuristic scanner. The GitHub Actions run for commit 09f077ac completed both scanner steps successfully.
+- The dependency audit workflow completed successfully. This audits npm-managed packages, **not** the external jsDelivr script.
+- Read-only production database recheck: all 16 reviewed public tables had RLS enabled, anonymous SELECT denied, and anonymous TRUNCATE denied.
+- Supabase's security advisor still reports only the leaked-password-protection warning; enable it in Auth settings if available under the current plan.
+- This does **not** constitute cross-account API testing, a comprehensive browser XSS assessment, or a verified backup restore.
