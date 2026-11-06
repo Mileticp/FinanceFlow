@@ -38,10 +38,10 @@ test('pinned Supabase 2.118.0 is vendored in immutable cache with SRI',()=>{
 });
 test('render escape helper handles HTML and attribute injection',()=>{
  const source=read('js/app.js').toString();
- const match=source.match(/const E=value=>([^;\n]+);/);
- assert.ok(match);
+ const line=source.split('\n').find(line=>line.includes('const E=value=>'));
+ assert.ok(line);
  const vm=require('node:vm');
- const encode=vm.runInNewContext('value=>'+match[1]);
+ const encode=vm.runInNewContext('('+line.trim().replace(/^const E=/,'').replace(/;$/,'')+')');
  const payload='" onerror="globalThis.injected=true" <img src=x onerror=alert(1)> &';
  const escaped=encode(payload);
  assert.ok(escaped.includes('&quot;'));
