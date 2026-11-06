@@ -15,6 +15,8 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  const legacyTables=['food_logs','weight_logs','financeflow_data','work_shifts','transactions','budgets','settings'];
  for(const t of legacyTables)await db.exec(`alter table ${t} enable row level security;create policy owner on ${t} for all to authenticated using((select auth.uid())=user_id) with check((select auth.uid())=user_id);grant select,insert,update,delete on ${t} to authenticated;`);
  await db.exec(fs.readFileSync(path.join(root,'supabase/migrations',fs.readdirSync(path.join(root,'supabase/migrations'))[0]),'utf8'));
+ const injection='<img id="ff-xss-probe" src="x" onerror="window.__ff_xss=1">';
+ await db.query('insert into nutrition_history(user_id,kind,notes) values($1,$2,$3)',[A,'Synthetic XSS regression',injection]);
  await db.query('insert into financeflow_data(user_id,payload) values($1,$2)',[A,JSON.stringify({transactions:[{id:'existing',date:'2026-11-05',type:'income',amount:100,category:'Salary',description:'Existing income'}],budgets:{'2026-11':500},goal:{name:'Trip',amount:1000},shifts:[],paySettings:{hourlyRate:8.98,kmRate:.1725},customSettings:{preserved:true}})]);
  await db.query("insert into work_shifts(user_id,date,hours,hourly_rate,kilometres,mileage_rate,notes) values($1,'2026-11-05',4,8.98,10,.1725,'Existing shift')",[A]);
  const tableNames=[...legacyTables,'nutrition_foods','nutrition_recipes','nutrition_ingredients','nutrition_entries','nutrition_days','nutrition_profiles','nutrition_goals','nutrition_history','nutrition_activity'];
@@ -47,15 +49,21 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:390,height:844},timezoneId:'America/Los_Angeles'}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
- await page.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:`
+ await page.addInitScript({content:`
  window.testUid='${A}';window.testFail=false;window.authListeners=[];
  const send=async q=>{if(window.testFail)throw Error('Simulated offline');return (await fetch('/mock-api',{method:'POST',body:JSON.stringify({...q,uid:window.testUid})})).json()};
- window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{user:{id:window.testUid,email:'test@example.com'}}}),signInWithPassword:async()=>{window.testUid='${B}';return {data:{user:{id:window.testUid,email:'second@example.com'}}}},signOut:async()=>{authListeners.forEach(cb=>cb('SIGNED_OUT'));return {}},onAuthStateChange:cb=>{authListeners.push(cb);return {}}},rpc:(rpc,args)=>send({rpc,args}),from:table=>{const q={table,op:'read',filters:[],order:[]};const b={select:()=>b,eq:(k,v)=>{q.filters.push([k,v]);return b},order:(k,opt={})=>{q.order.push([k,opt.ascending!==false]);return b},range:(a,z)=>{q.range=[a,z];return b},maybeSingle:()=>{q.single=true;return b},insert:p=>{q.op='insert';q.payload=p;return b},update:p=>{q.op='update';q.payload=p;return b},upsert:p=>{q.op='upsert';q.payload=p;return b},delete:()=>{q.op='delete';return b},then:(resolve,reject)=>send(q).then(resolve,reject)};return b}})};` }));
+ window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{user:{id:window.testUid,email:'test@example.com'}}}),signInWithPassword:async()=>{window.testUid='${B}';return {data:{user:{id:window.testUid,email:'second@example.com'}}}},signOut:async()=>{authListeners.forEach(cb=>cb('SIGNED_OUT'));return {}},onAuthStateChange:cb=>{authListeners.push(cb);return {}}},rpc:(rpc,args)=>send({rpc,args}),from:table=>{const q={table,op:'read',filters:[],order:[]};const b={select:()=>b,eq:(k,v)=>{q.filters.push([k,v]);return b},order:(k,opt={})=>{q.order.push([k,opt.ascending!==false]);return b},range:(a,z)=>{q.range=[a,z];return b},maybeSingle:()=>{q.single=true;return b},insert:p=>{q.op='insert';q.payload=p;return b},update:p=>{q.op='update';q.payload=p;return b},upsert:p=>{q.op='upsert';q.payload=p;return b},delete:()=>{q.op='delete';return b},then:(resolve,reject)=>send(q).then(resolve,reject)};return b}})};`
+ + "\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});
  page.setDefaultTimeout(10000);fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
  const nav=async view=>{const direct=page.locator(`[data-view=${view}]`);if(await direct.isVisible())await direct.click();else{await page.click('#moreNav');await page.click(`[data-destination=${view}]`);}};
  const base=`http://127.0.0.1:${server.address().port}`;await page.goto(base);await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));
  if(process.env.FF_VISUAL){await require('./visual.cjs')({page,db,api,base,root,A,errors});return;}
  assert.match(await page.textContent('#overviewView'),/€100.00/);assert.match(await page.textContent('#overviewView'),/No dated weigh-ins/);
+ await nav('nutrition');await page.click('[data-action="nutrition-sub"][data-sub="review"]');
+ assert.ok((await page.textContent('#nutritionView')).includes(injection),'user notes must remain text');
+ assert.equal(await page.locator('#ff-xss-probe').count(),0,'HTML payload must never be parsed into an element');
+ assert.equal(await page.evaluate(()=>window.__ff_xss),undefined,'malicious event handler must never run');
+ await page.click('[data-action="nutrition-sub"][data-sub="diary"]');
  await nav('settings');await page.setInputFiles('#historyFile',path.join(root,'tests/fixtures/synthetic-history.json'));await page.waitForFunction(()=>document.querySelector('#historyFileStatus').textContent.includes('synthetic'));await page.click('[data-action=preview-import]:visible');await page.waitForFunction(()=>document.querySelector('#importPreview').textContent.includes('to create'));
  const count=await db.query('select count(*) from nutrition_entries');assert.equal(count.rows[0].count,0);
  await page.click('[data-action=apply-import]:visible');await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Import finished'));
@@ -104,7 +112,8 @@ const root=path.resolve(__dirname,'..'),A='11111111-1111-4111-8111-111111111111'
  await page.evaluate(uid=>{window.testUid=uid;authListeners.forEach(cb=>cb('SIGNED_IN',{user:{id:uid,email:'first@example.com'}}))},A);
  await page.waitForFunction(()=>document.querySelector('#appStatus').textContent.includes('Cloud connected'));await nav('finance');assert.match(await page.textContent('#transactions'),/V2 groceries/);
  await nav('settings');assert.match(await page.textContent('#historyFileStatus'),/No private input/);
- const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')||url.includes('supabase')),false);
+ const cacheURLs=await page.evaluate(async cacheName=>{const cache=await caches.open(cacheName);return (await cache.keys()).map(r=>new URL(r.url).pathname)},cacheName);assert.equal(cacheURLs.some(url=>url.includes('mock-api')||url.includes('synthetic-history')),false,JSON.stringify(cacheURLs));
+ assert.equal(cacheURLs.some(url=>url.includes('/shell/supabase.min.')),true,'Pinned client must be cached for offline use');
  assert.deepEqual(errors,[]);console.log('Browser integration passed: import preview/idempotency, nullable meals/edit/delete/undo, catalog/favorites, atomic recipes, weights, finance/shift saves, statistics, complete backup, offline errors, account isolation, mobile/desktop layout and PWA cache.');
  }finally{if(browser)await browser.close();if(server)server.close();await db.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
