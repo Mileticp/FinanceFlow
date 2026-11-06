@@ -65,10 +65,10 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  assert.equal(await page.evaluate(()=>caches.has('unrelated-test-cache')),true);
  await context.setOffline(true);await page.reload();assert.equal(await page.locator('meta[name=financeflow-release]').getAttribute('content'),release.version);assert.equal(await page.locator('.top svg.icon').first().evaluate(el=>getComputedStyle(el).fill),'none');await context.setOffline(false);
  const keys=await page.evaluate(async CACHE=>(await (await caches.open(CACHE)).keys()).map(r=>new URL(r.url).pathname),CACHE);
- assert.ok(keys.every(key=>release.assets.some(asset=>'/FinanceFlow/'+asset.url.slice(2)===key)));assert.ok(!keys.some(key=>/supabase|mock-api|private|history.json/.test(key)));
+ assert.ok(keys.every(key=>release.assets.some(asset=>'/FinanceFlow/'+asset.url.slice(2)===key)));assert.ok(!keys.some(key=>/mock-api|private|history.json/.test(key)));assert.ok(keys.some(key=>key.includes('/shell/supabase.min.')));
  // Same human version, changed content: generated hashes must invalidate a future deployment.
  futureRoot=fs.mkdtempSync(path.join(os.tmpdir(),'financeflow-next-'));
- for(const file of ['index.html','sw.js','package.json','css/v2.css','js/shift-time.js','js/core.js','js/importer.js','js/app.js','js/sw-client.js','food.html','manifest.webmanifest','icon-192.png','icon-512.png']){const target=path.join(futureRoot,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,file),target);}
+ for(const file of ['index.html','sw.js','package.json','css/v2.css','js/shift-time.js','js/core.js','js/importer.js','js/app.js','js/sw-client.js','vendor/supabase.min.js','food.html','manifest.webmanifest','icon-192.png','icon-512.png']){const target=path.join(futureRoot,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(root,file),target);}
  fs.appendFileSync(path.join(futureRoot,'css/v2.css'),'\n/* Synthetic next deployment. */\n');
  const outputs=generate(futureRoot),nextRelease=JSON.parse(outputs['shell-release.json']);
  future={outputs,release:nextRelease,css:nextRelease.assets.find(a=>a.url.endsWith('.css')).url.slice(2)};
@@ -91,17 +91,17 @@ const mock=`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{u
  assert.equal(await page.evaluate(()=>localStorage.getItem('ff-upgrade-sentinel')),'synthetic saved state');
  // An already-installed v2.1.0 worker can itself hold a mixed precache.
  phase='mixed-v2.1';const mixed=await browser.newContext({...mobile,viewport:{width:320,height:844}}),mixedPage=await mixed.newPage();
- watch(mixedPage);await mixed.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:mock}));await mixedPage.goto(base);await mixedPage.evaluate(()=>navigator.serviceWorker.ready);await mixedPage.reload();
+ watch(mixedPage);await mixed.addInitScript({content:mock+"\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});await mixedPage.goto(base);await mixedPage.evaluate(()=>navigator.serviceWorker.ready);await mixedPage.reload();
  assert.equal(await mixedPage.evaluate(()=>caches.has('financeflow-shell-v2.1.0')),true);assert.ok(await mixedPage.locator('.top svg.icon').first().evaluate(el=>el.getBoundingClientRect().width>100));
  phase='fixed';await mixedPage.reload();await mixedPage.waitForFunction(async CACHE=>(await caches.keys()).includes(CACHE)&&!(await caches.keys()).includes('financeflow-shell-v2.1.0'),CACHE);await mixedPage.reload();await waitReady(mixedPage);await layout(mixedPage);await mixed.close();
  phase='fixed';const fresh=await browser.newContext({...mobile,viewport:{width:320,height:844}}),freshPage=await fresh.newPage();
- watch(freshPage);await fresh.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:mock}));
+ watch(freshPage);await fresh.addInitScript({content:mock+"\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});
  await freshPage.goto(base);await waitReady(freshPage);await freshPage.evaluate(()=>navigator.serviceWorker.ready);await layout(freshPage);
  await freshPage.evaluate(()=>{location.hash='finance'});await freshPage.locator('[data-action=focus-form]:visible').click();assert.ok(await freshPage.locator('#type').evaluate(el=>document.activeElement===el));
  await freshPage.goto(base+'#work');await waitReady(freshPage);assert.equal(await freshPage.locator('#workView').isVisible(),true);await fresh.close();
  // Even with the stylesheet absent, SVG presentation attributes must prevent 300px black icons.
  const bare=await browser.newContext({...mobile,viewport:{width:320,height:844},serviceWorkers:'block'}),barePage=await bare.newPage();
- watch(barePage);await bare.route('https://cdn.jsdelivr.net/**',route=>route.fulfill({contentType:'text/javascript',body:mock}));await bare.route('**/shell/*.css',route=>route.abort());await barePage.goto(base);
+ watch(barePage);await bare.addInitScript({content:mock+"\nconst ffMock=window.supabase;Object.defineProperty(window,'supabase',{configurable:true,get:()=>ffMock,set:()=>{}});"});await bare.route('**/shell/*.css',route=>route.abort());await barePage.goto(base);
  const safe=await barePage.locator('.top svg.icon').first().evaluate(el=>({width:el.getBoundingClientRect().width,fill:getComputedStyle(el).fill}));assert.equal(safe.width,21);assert.equal(safe.fill,'none');assert.equal(await barePage.locator('.icon-definitions').evaluate(el=>el.getBoundingClientRect().width),0);await bare.close();
  assert.deepEqual(pageErrors,[],'No uncaught application errors on upgrade/reload');
  assert.equal(requests.filter(r=>r.phase==='fixed'&&['css/v2.css','js/app.js','js/shift-time.js','js/core.js','js/importer.js'].includes(r.file)).length,0,'New HTML must never request ambiguous old asset URLs');
